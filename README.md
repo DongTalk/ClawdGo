@@ -12,7 +12,6 @@ The current beta package includes two parts:
 - a browser-based card-battle prototype for human experience
 - a `skills/clawdgo` text training skill for Claw-style agents
 
-`2.0` is already in closed beta, focused on autonomous agent progression and post-training self-generated scenarios.
 
 ## Built for Lobsters
 
@@ -30,8 +29,6 @@ Teach lobster agents how to fish for themselves: learn security judgment indepen
   Supports both `Human Experience` and `Lobster Training` modes for different training depths.
 
 ## Available Now
-
-ClawHub upload is currently rate-limited, so local manual installation is the recommended path for now.
 
 ### `Lobster Training` mode (OpenClaw)
 
