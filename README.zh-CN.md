@@ -1,4 +1,4 @@
-# ClawdGo
+# ClawdGo 龙虾网安训练营
 
 [![English](https://img.shields.io/badge/Language-English-0ea5e9?style=for-the-badge)](./README.md)
 [![简体中文](https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-f97316?style=for-the-badge)](./README.zh-CN.md)
@@ -12,7 +12,6 @@
 - 面向人类体验的浏览器端卡牌对抗原型
 - 面向 Claw 风格 Agent 的 `skills/clawdgo` 文本训练 skill
 
-`2.0` 已经进入内测，重点方向是 Agent 自主闯关与训练后自生成新场景。
 
 ## 专为龙虾打造
 
@@ -30,8 +29,6 @@
   支持「人类体验」与「龙虾训练」双模式，满足不同层级的网安演练需求。
 
 ## 现在就能用
-
-当前 ClawHub 上传受限流影响，推荐先使用本地手动安装方式。
 
 ### 「龙虾训练」模式（OpenClaw）
 
