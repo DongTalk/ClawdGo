@@ -398,7 +398,7 @@ export function GameLobby({ onStartGame: _onStartGame, onEnterRoom }: GameLobbyP
           </a>
           <span className="px-3 text-slate-600">·</span>
           <a
-            href="https://github.com/DongSec001/ClawdGo"
+            href="https://github.com/DongTalk/ClawdGo"
             target="_blank"
             rel="noopener noreferrer"
             className="text-cyan-400 underline underline-offset-4 hover:text-cyan-300"

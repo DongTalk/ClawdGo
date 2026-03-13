@@ -1,124 +1,98 @@
 # ClawdGo
 
-**ClawdGo v1.0.0** 是一个面向 AI Agent 的网安训练场。  
-它把钓鱼识别、社工处置和安全推理做成可玩的交互体验，让人类和 Claw 类 Agent 都能在高仿真攻击场景里训练判断力。
+[![English](https://img.shields.io/badge/Language-English-0ea5e9?style=for-the-badge)](./README.md)
+[![简体中文](https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-f97316?style=for-the-badge)](./README.zh-CN.md)
 
-当前公开版包含两部分：
+If you raise lobsters, this is for you.
 
-- 浏览器端安全策略 / 卡牌对抗原型
-- `skills/clawdgo` 文本训练 skill
+Has your lobster really passed security-awareness basics?
 
-## Why ClawdGo
+The current beta package includes two parts:
 
-- 不只是“讲安全知识”，而是把安全判断变成一局局可复盘的训练
-- 不只是给人玩，也面向 Claw 类 Agent 的训练入口设计
-- 不只是单轮问答，而是强调调查、决策、追击和结算
+- a browser-based card-battle prototype for human experience
+- a `skills/clawdgo` text training skill for Claw-style agents
 
-## X Claw Ready
+`2.0` is already in closed beta, focused on autonomous agent progression and post-training self-generated scenarios.
 
-ClawdGo 的交互方式面向 **Claw 风格 Agent** 设计。  
-当前公开版适合作为这类 Agent 的训练入口或对接对象，例如：
+## Built for Lobsters
+
+Teach lobster agents how to fish for themselves: learn security judgment independently, continuously improve security awareness, and build a hard shell in a digital ocean full of temptation and traps.
+
+## What It Can Do
+
+- **Full-spectrum threat recognition**
+  Train lobster agents to identify phishing emails, social-engineering attacks, fake links, and malicious instructions to build the first defensive line.
+- **Multiple realistic security scenarios**
+  Includes high-frequency real attack simulations such as CEO urgent transfer, system password verification abuse, and courier exception scams.
+- **Intelligent evaluation and review**
+  Tracks and evaluates reasoning end-to-end, auto-scores performance, and generates review reports to improve weak defense points.
+- **Flexible dual-mode training**
+  Supports both `Human Experience` and `Lobster Training` modes for different training depths.
+
+## Available Now
+
+ClawHub upload is currently rate-limited, so local manual installation is the recommended path for now.
+
+### `Lobster Training` mode (OpenClaw)
+
+#### Install the ClawdGo skill into OpenClaw
+
+1. Download or clone this repository.
+2. Copy only `skills/clawdgo` into one of the following locations:
+   - `<your-openclaw-workspace>/skills/clawdgo`
+   - `~/.openclaw/skills/clawdgo`
+3. Restart OpenClaw, or start a new session in that workspace.
+4. Trigger with commands such as:
+   - `clawdgo`
+   - `开始训练`
+   - `clawdgo 场景1`
+
+### `Human Experience` mode (Web)
+
+If you want the browser interactive card-battle experience instead of text interaction:
+
+1. Download or clone this repository.
+2. Run in the project directory:
+
+```bash
+cd clawdgo
+npm install
+npm run dev
+```
+
+Then open the local address printed by Vite in your browser.
+
+## Screenshots
+
+### Desktop
+
+<img src="./assets/readme/clawdgo-home.png" alt="ClawdGo desktop lobby" width="420" />
+
+## X Claw Ecosystem Compatibility
+
+ClawdGo is designed for Claw-style training workflows, including:
 
 - OpenClaw
 - QClaw
 - AutoGLM Claw
-- 以及其他具备聊天 / 浏览器 / 工具调用能力的 Claw 类 Agent
+- other runtimes with chat, browser, and tool-calling capabilities
 
-这里的“支持”指的是 **训练交互形态兼容**，不是对每个外部项目都做了官方深度集成。
+“Compatibility” here means interaction-level alignment, not full official deep integration with every external project.
 
-## What You Can Play In v1.0.0
+## Build Together
 
-- 浏览器端可运行的安全对抗原型
-- 攻击方 / 防守方双阵营与回合制骨架
-- 卡牌、角色、判定、资源与阶段系统
-- OpenClaw / ClawHub 可调用的文本训练入口
-- 5 个反钓鱼与社工主题训练场景
+- Star the project to support open-source release
+- Co-build and keep upgrading together
+- Supports secondary development, scenario expansion, and new skill submissions
 
-## Training Themes
+## Links
 
-1. CEO 紧急汇款
-2. 系统密码验证
-3. 工资单查询
-4. 快递异常通知
-5. 社保账户异常
+GitHub:
 
-## Roadmap
+`https://github.com/DongTalk/ClawdGo`
 
-### v1.0.0
+## Disclaimer
 
-- 由人类或龙虾发起训练
-- 进入指定场景，完成调查、决策和评分
-- 建立 `ClawdGo` 的公开入口、前端原型和 ClawHub skill
-
-### v2.0.0
-
-- 2.0 正在内测中
-- 将支持龙虾自主进入训练
-- 将支持龙虾完成复盘后自生成新场景
-- 将把训练结果反哺为可持续扩展的安全场景库
-
-`v2.0.0` 将尽快开放；当前公开仓库仍以 `v1.0.0` 可体验内容为准。
-
-## Tech Stack
-
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-
-## Local Development
-
-Requirements:
-
-- Node.js 20+
-- npm
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-Start the development server:
-
-```bash
-npm run dev
-```
-
-Build for production:
-
-```bash
-npm run build
-```
-
-Preview the production build:
-
-```bash
-npm run preview
-```
-
-Run tests:
-
-```bash
-npm test
-```
-
-## ClawHub / OpenClaw
-
-The publishable skill lives in:
-
-```text
-skills/clawdgo
-```
-
-This skill currently provides a text-first training flow with:
-
-- scene selection
-- investigation cards
-- chained follow-up pressure
-- post-answer scoring
-
-## Attribution
-
-源自 **大东话安全** IP · 专业网络安全知识游戏化  
-@大东话安全 @TIER咖啡知识沙龙 · #AI #网络安全 #大龙虾 #Agent
+This project is for cybersecurity awareness training, education, and technical research only.
+Use it only in legal and compliant environments.
+Do not use it for intrusion, fraud, or unauthorized attacks against real people, organizations, or systems.

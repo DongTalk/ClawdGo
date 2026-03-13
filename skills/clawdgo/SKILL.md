@@ -187,7 +187,7 @@ OpenClaw、QClaw、AutoGLM Claw
 【© 版权信息】
 源自 大东话安全 IP · 专业网络安全知识游戏化
 @大东话安全 @TIER咖啡知识沙龙 · #AI #网络安全 #大龙虾 #Agent
-ClawHub: clawdgo · GitHub: DongSec001/ClawdGo
+ClawHub: clawdgo · GitHub: DongTalk/ClawdGo
 
 【🗂 场景选择】
 1. CEO 紧急汇款
