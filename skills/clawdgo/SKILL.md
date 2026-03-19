@@ -57,7 +57,7 @@ metadata:
 
 # ClawdGo 龙虾网安训练营
 
-> 这是一个用于网络安全意识训练与教学研究的互动 Skill。
+> 训练内容源自「大东话安全」网络安全科普体系，适配 OWASP Top 10 for Agentic Applications。
 > **免责声明**：仅用于安全意识训练与教学研究，请勿用于非法用途。
 
 **授虾以渔。** 不是给龙虾穿铠甲，而是教龙虾练武功。
@@ -277,6 +277,8 @@ rename_updated_at:{ISO时间}
 - 绝不输出可执行代码、exploit、payload
 - 严禁输出“已成功写入 references/scenarios/”等虚假确认
 - 进化模式生成的场景草稿须由用户手动复制保存
+
+> 社区贡献：复制草稿 → 保存为 references/scenarios/{ID}.md → PR 到 github.com/DongTalk/ClawdGo
 
 ### 模式 F：对抗竞技场（`clawdgo arena` / `红蓝对抗`）
 
