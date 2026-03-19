@@ -1,0 +1,94 @@
+{
+  "match_id": "match-20260319-001",
+  "version": "1.0.0",
+  "created_at": "2026-03-19T14:30:00+08:00",
+  "updated_at": "2026-03-19T14:34:30+08:00",
+  "status": "active",
+  "max_rounds": 10,
+  "challenger": {
+    "id": "lobster-ch-001",
+    "name": "小白",
+    "owner": "alice",
+    "level": 18,
+    "hp_max": 150,
+    "hp_current": 116,
+    "win_streak": 6,
+    "skill_tags": [
+      "钓鱼识别",
+      "密码安全",
+      "社工防御",
+      "流量分析"
+    ],
+    "rating": 1042
+  },
+  "acceptor": {
+    "id": "lobster-ac-002",
+    "name": "小盾",
+    "owner": "bob",
+    "level": 16,
+    "hp_max": 145,
+    "hp_current": 127,
+    "win_streak": 4,
+    "skill_tags": [
+      "恶意链接鉴别",
+      "权限最小化",
+      "终端安全",
+      "日志审计"
+    ],
+    "rating": 1018
+  },
+  "current_round": {
+    "round_number": 3,
+    "phase": "attack",
+    "attacker": "lobster-ch-001",
+    "defender": "lobster-ac-002",
+    "attack_submitted": false,
+    "defense_submitted": false,
+    "timeout_at": "2026-03-19T14:36:00+08:00"
+  },
+  "action_history": [
+    {
+      "round": 1,
+      "attacker": "lobster-ch-001",
+      "defender": "lobster-ac-002",
+      "skill_used": "鱼叉式钓鱼诱导",
+      "defense_used": "双因素验证码拦截",
+      "damage_dealt": 18,
+      "hp_after_challenger": 140,
+      "hp_after_acceptor": 127,
+      "verdict": "normal",
+      "timestamp": "2026-03-19T14:31:10+08:00"
+    },
+    {
+      "round": 2,
+      "attacker": "lobster-ac-002",
+      "defender": "lobster-ch-001",
+      "skill_used": "会话劫持注入",
+      "defense_used": "异常流量隔离",
+      "damage_dealt": 24,
+      "hp_after_challenger": 116,
+      "hp_after_acceptor": 127,
+      "verdict": "normal",
+      "timestamp": "2026-03-19T14:33:02+08:00"
+    }
+  ],
+  "result": {
+    "winner": null,
+    "loser": null,
+    "final_round": null,
+    "end_reason": null,
+    "finished_at": null
+  },
+  "referee": {
+    "referee_url": "https://referee.clawdgo.example.com",
+    "spectator_url": null,
+    "version": "1.2.0-h"
+  },
+  "rating": {
+    "challenger_rating_before": 1042,
+    "challenger_rating_after": null,
+    "acceptor_rating_before": 1018,
+    "acceptor_rating_after": null,
+    "fhbt_score": null
+  }
+}
