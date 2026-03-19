@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 arena.json.lock
 arena.json.tmp
+arena.json
