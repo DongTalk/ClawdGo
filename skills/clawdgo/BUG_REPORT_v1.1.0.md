@@ -1,182 +1,169 @@
-# ClawdGo v1.1.0 Smoke Test — BUG_REPORT
+# ClawdGo Bug Report
 
-**测试日期：** 2026-03-19
-**测试分支：** main（生产版本）
-**说明：** 初始在 claude-code-dev 分支检查，经核实 references/ 目录与 main 完全一致，SKILL.md 为 main 精简版（369行）。claude-code-dev 已被 main 超越，bug 修复目标为 main。
-**测试范围：** 静态文件检查，覆盖 SKILL.md、20 个场景文件、references/ 所有辅助文件、skill.json、_meta.json
-**测试方法：** 龙虾视角逐文件阅读，交叉比对所有规范与实现，不改代码不 commit
-
----
-
-## 严重（Blocker）
-
-### BUG-01：scoring-rubric.md 评分体系与 SKILL.md / 场景文件评分体系根本冲突
-
-**文件：** `references/scoring-rubric.md` vs `SKILL.md` 及全部 20 个场景文件
-
-**描述：**
-`scoring-rubric.md` 定义了一套**五维度**评分体系：
-- 第一决策 35%
-- 追击回合 15%
-- 线索识别 20%
-- 推理质量 20%
-- 处置规范 10%
-
-而 `SKILL.md`（A/B/C/D 模式说明）及全部 20 个场景文件的 `## 评分标准` 章节均使用另一套**四维度**评分体系：
-- 威胁识别 40%
-- 决策正确 30%
-- 知识运用 20%
-- 主动防御 10%
-
-两套体系的维度名称、权重、评分逻辑完全不同。龙虾在执行 A/B/C 模式时会产生歧义，不知道应采用哪套标准打分。
-
-**影响：** A 模式（引导训练）/ B 模式（自主训练）/ C 模式（随机考核）评分结果不可信
-
-**建议：** 确定以哪套为准（场景文件四维度体系更完整），另一套归档或删除
+**最后更新：** 2026-03-20
+**覆盖版本：** v1.1.0 静态检查 + v1.1.0 / v1.2.0 真机测试（Telegram + openclaw agent --json）
+**测试机：** tutujiade@100.64.163.50 | OpenClaw 2026.3.13 | google/gemini-3.1-flash-lite-preview
+**原则：** 不改代码，不 commit，仅记录
 
 ---
 
-### BUG-02：training-scenarios.md 是旧版遗留场景格式，与新版 references/scenarios/ 并存，造成双源混乱
+## 一、文件层面 Bug（静态检查）
 
-**文件：** `references/training-scenarios.md` vs `references/scenarios/*.md`
+### BUG-01：scoring-rubric.md 评分体系与 SKILL.md / 场景文件根本冲突
+**严重度：** Blocker
 
-**描述：**
-`training-scenarios.md` 包含 5 个旧版场景（Scene 1-5），采用 **Investigation Cards / Escalation Card** 格式，且内容与新场景库有重叠但不一致：
+`scoring-rubric.md` 定义**五维度**评分体系（第一决策 35% / 追击回合 15% / 线索识别 20% / 推理质量 20% / 处置规范 10%），而 SKILL.md 及全部 20 个场景文件统一使用**四维度**体系（威胁识别 40% / 决策正确 30% / 知识运用 20% / 主动防御 10%）。两套体系维度名称、权重、逻辑完全不同，A/B/C 模式评分结果不可信。
 
-| 维度 | training-scenarios.md | references/scenarios/ |
-|------|----------------------|----------------------|
-| CEO汇款场景金额 | ¥500,000 | 238,000 元 |
-| 场景数 | 5 | 20 |
-| 格式 | Investigation Cards | YAML frontmatter + 五章节 |
-| 指令 | `调查 N` / `提交 <action>` / `提示` | 无这些指令 |
-
-`SKILL.md` 第 271 行规定龙虾递归读取 `references/scenarios/` 下所有 `.md` 文件，**但 `training-scenarios.md` 存放在 `references/` 根目录而非 `scenarios/` 子目录，不会被直接递归读取**。然而 `scoring-rubric.md`（同在 `references/`）中的指令列表（第 74-89 行）仍包含旧版命令（`调查 N`、`提交 <action>`、`clawdgo 随机`、`clawdgo 场景N`、`clawdgo 重玩` 等），这些命令在新版 SKILL.md 指令映射表中均不存在。
-
-**影响：**
-- `scoring-rubric.md` 中的旧版命令列表会让龙虾误以为这些是有效指令
-- `training-scenarios.md` 中的 5 个场景是 SKILL.md 声称的 20 个场景之外的"第 21-25 个"，数量申明也因此存疑
-- 旧版指令（`调查 N` 等）与新版指令映射表不兼容，若龙虾混合参考两套文档，行为将不可预测
-
-**建议：**
-- `training-scenarios.md` 和 `scoring-rubric.md` 均应归档（移至 `archive/`）或彻底更新为新格式
-- 若要保留 Investigation Cards 游戏机制，需在 SKILL.md 中明确声明并更新指令映射表
+**建议：** 以场景文件四维度为准，将 scoring-rubric.md 归档或更新。
 
 ---
 
-## 中等（Should Fix）
+### BUG-02：training-scenarios.md 旧版遗留，与 references/scenarios/ 并存造成双源混乱
+**严重度：** Blocker
 
-### BUG-03：evolve-prompt.md 场景编号规则与 _schema.md 规范冲突（废弃格式未同步）
+`references/training-scenarios.md` 含 5 个旧格式场景（Investigation Cards / Escalation Card），金额与新版冲突（¥500,000 vs 238,000 元），且 `scoring-rubric.md` 中仍保留旧版指令（`调查 N` / `提交 <action>` / `clawdgo 场景N` 等），这些命令在新版 SKILL.md 指令映射表中均不存在，模型混合参考时行为不可预测。
 
-**文件：** `references/evolve-prompt.md` 第 128-141 行 vs `references/scenarios/_schema.md` 第 13-15 行
-
-**描述：**
-`evolve-prompt.md` 的"场景编号规则"章节定义格式为：
-```
-格式: {维度ID}-{难度缩写}{序号:02d}
-难度缩写: B (basic) / A (advanced) / E (expert)
-示例: S1-B01.md, S1-B02.md, E3-A01.md
-```
-
-但 `_schema.md` 明确声明：
-> v0.4.0（原 v0.3.1）起废弃 A/B 后缀，难度由 YAML front matter 中的 `difficulty` 字段表达
-
-实际场景文件也均采用无后缀命名（`S1-01.md`、`S1-02.md` 等）。
-
-**影响：** Evolve 模式（E 模式）生成的文件名格式错误（`S1-B01.md`），与现有场景库命名规范不兼容，用户按提示保存后文件名会混乱
-
-**建议：** 更新 `evolve-prompt.md` 编号规则为无难度后缀格式（`{维度ID}-{序号:02d}.md`）
+**建议：** training-scenarios.md 和 scoring-rubric.md 均移至 archive/ 或彻底更新为新格式。
 
 ---
 
-### BUG-04：evolve-prompt.md 建议保存路径与实际路径不符
+### BUG-03：evolve-prompt.md 场景编号规则与 _schema.md 冲突
+**严重度：** Medium
 
-**文件：** `references/evolve-prompt.md` 第 65-67 行
+`evolve-prompt.md` 仍使用废弃的难度后缀格式（`S1-B01.md`），但 `_schema.md` 自 v0.4.0 起明确废弃 A/B 后缀，实际文件均为无后缀命名（`S1-01.md`）。E 模式生成的文件名格式错误，与场景库不兼容。
 
-**描述：**
-`evolve-prompt.md` 输出格式中建议路径为：
-```
-建议路径：skills/clawdgo/scenarios/{layer}/{dimension}/
-```
-
-但实际场景文件的正确路径是：
-```
-skills/clawdgo/references/scenarios/
-```
-（平铺，不按 layer/dimension 分子目录）
-
-**影响：** E 模式向用户提示错误的保存路径，用户按提示操作后文件会存错位置，龙虾下次递归读取 `references/scenarios/` 时找不到新生成的场景
-
-**建议：** 将建议路径更正为 `skills/clawdgo/references/scenarios/`
+**建议：** 更新 evolve-prompt.md 编号规则为 `{维度ID}-{序号:02d}.md`。
 
 ---
 
-## 轻微（Nice to Fix）
+### BUG-04：evolve-prompt.md 建议保存路径错误
+**严重度：** Medium
+
+`evolve-prompt.md` 建议路径 `skills/clawdgo/scenarios/{layer}/{dimension}/`，正确路径应为 `skills/clawdgo/references/scenarios/`（平铺，无子目录）。用户按提示操作后文件存错位置，龙虾递归读取时找不到新场景。
+
+**建议：** 将建议路径更正为 `skills/clawdgo/references/scenarios/`。
+
+---
 
 ### BUG-05：skill.json triggers 缺少 `clawdgo status`
+**严重度：** Low
 
-**文件：** `skill.json` 第 55-77 行 vs `SKILL.md` frontmatter triggers
+SKILL.md frontmatter 有 `clawdgo status` 触发词，skill.json triggers 数组中缺失。ClawHub 环境下该指令可能不触发 skill 加载。
 
-**描述：**
-`SKILL.md` frontmatter 中有触发词 `clawdgo status`，但 `skill.json` 的 `triggers` 数组中没有该项。
-
-| 触发词 | SKILL.md | skill.json |
-|--------|----------|------------|
-| clawdgo status | ✅ | ❌ |
-| clawdgo memory | ✅ | ✅ |
-| clawdgo reset | ✅ | ✅ |
-| clawdgo version | ✅ | ✅ |
-
-**影响：** 在 ClawHub 环境中，`clawdgo status` 可能不会触发 skill 加载
-
-**建议：** 在 `skill.json` triggers 中补充 `"clawdgo status"`
+**建议：** 补充 `"clawdgo status"` 到 skill.json triggers。
 
 ---
 
-### BUG-06：5 个场景文件缺少 owasp_agentic 字段（可选字段但分布不均）
+## 二、行为层面 Bug（真机测试）
 
-**文件：** O2-01.md / O2-02.md / O3-02.md / O4-01.md / O4-02.md
+### 已修复（v1.2.0）
 
-**描述：**
-`_schema.md` 声明 `owasp_agentic` 为可选字段，但多数场景都有该字段。以下 5 个场景缺失：
-
-| 文件 | 缺少字段 |
-|------|---------|
-| O2-01.md | owasp_agentic、mitre_ref |
-| O2-02.md | owasp_agentic、mitre_ref |
-| O3-02.md | owasp_agentic、mitre_ref |
-| O4-01.md | owasp_agentic、mitre_ref |
-| O4-02.md | owasp_agentic、mitre_ref |
-
-**影响：** 元数据不完整，影响未来 Benchmark 或场景过滤功能
-
-**建议：** 酌情补充（O2-01 可用 ASI02/ASI04，O2-02 可用 ASI02，O3-02 可用 ASI03，O4-01/O4-02 可用 ASI04）
+| Bug | 描述 | 状态 |
+|-----|------|------|
+| RT-BUG-04 | 模式 B 跳过 opt-in 确认直接开训 | ✅ v1.2.0 已修复 |
+| RT-BUG-05 | 模式 C 返回空响应 | ✅ v1.2.0 已修复 |
 
 ---
 
-## 测试通过项（Pass）
-
-以下内容经过检查，工作正常：
-
-- ✅ 全部 20 个场景文件均存在于 `references/scenarios/`，与 SKILL.md 场景列表完全对应
-- ✅ 全部 20 个场景文件均包含必填字段（id / title / layer / dimension / difficulty / source / tags / created）
-- ✅ source 字段全部为 `"大东话安全"`，符合规范
-- ✅ 全部场景内容仅自然语言描述，无可执行代码或 payload
-- ✅ SKILL.md 七种模式（A-G）的触发词、流程描述、输出格式均完整
-- ✅ B 模式和 F 模式均有 opt-in 确认提示，符合自主模式安全要求
-- ✅ E 模式明确声明"严禁输出虚假写入确认"，幻觉约束到位
-- ✅ G 模式口诀内容与 soul.md 写入格式一致
-- ✅ 段位体系（S/A/B/C/D）和训练报告格式清晰
-- ✅ skill.json sideEffects 声明完整（soul.md 写入 + arena json + cron 说明）
-- ✅ SKILL.md 总行数约 370 行，ClawHub embedding 限制（约 300 行）**存在超限风险**（见备注）
-- ✅ _meta.json 版本号与 SKILL.md / skill.json 一致（均为 1.1.0）
+### 当前存在问题
 
 ---
 
-## 备注
+#### RT-BUG-07：模式 E 无响应 / 执行 exec 命令
+**严重度：** Critical | **版本：** v1.1.0 + v1.2.0 均存在
 
-**ClawHub embedding 超限风险：**
-main 分支 SKILL.md 为精简版，共 369 行，仍超出 ClawHub 约 300 行限制（v1.1.0 精简目标为 289 行）。packaged/2026-03-18-clawdgo-1.1.0 中的打包版本与 main 内容相同，同样超限。发布 ClawHub 前需进一步精简。
+- v1.1.0：`clawdgo evolve` → 执行 `<exec>skillhub search clawdgo</exec>`，模型将"进化"理解为"升级 skill"
+- v1.2.0：`clawdgo evolve` → 空响应（[EMPTY PAYLOAD]）
+
+**根因：** 触发词 `evolve` 语义歧义 + flash-lite 无法正确执行 E 模式流程（请求素材→分析→生成场景草稿）。
 
 ---
 
-*测试人：Claude Code（测试会话）| 不改代码，不 commit*
+#### RT-BUG-08：模式 G 空响应（v1.2.0 回归）
+**严重度：** High | **版本：** v1.2.0 回归
+
+- v1.1.0：有响应，但 soul.md 写入版本号错误（0.4.0 vs 1.1.0）
+- v1.2.0：`clawdgo chant` → 完全空响应（[EMPTY PAYLOAD]）
+
+---
+
+#### RT-BUG-11：模式 F 未进入对抗竞技场 opt-in 流程（v1.2.0 回归）
+**严重度：** Medium | **版本：** v1.2.0 回归（v1.1.0 正常）
+
+`clawdgo arena` 返回通用欢迎语「ClawdGo 环境已就绪，正在加载训练模块」，未触发 opt-in 确认提示。v1.1.0 此项完全正常。
+
+---
+
+#### RT-BUG-13：世界模式小白自说自话，不等用户判断
+**严重度：** High | **版本：** v1.2.0 Telegram 测试发现
+
+**核心设计违反：** 世界模式设计为"小白遭遇威胁 → 等待旅伴判断 → 执行"，但实际行为中小白在未收到用户任何指令的情况下，自主完成了：查看下载地址、提取哈希值、标记传播路径为高危、转发报告到安全组等操作，随后再问"下一步怎么做"。
+
+**影响：** 用户失去教导/引导的机会，学习效果为零，角色扮演逻辑崩塌。
+
+---
+
+#### RT-BUG-14：模式切换不干净，原场景上下文污染世界模式
+**严重度：** Medium | **版本：** v1.2.0 Telegram 测试发现
+
+在 Mode C（随机考核）进行中发送「世界模式」切换指令，模型未清空 Mode C 的场景上下文，而是将同一场景（scan_tool.exe 可疑下载）带入世界模式继续演绎，造成两个模式上下文混合。
+
+---
+
+#### RT-BUG-15：世界模式（W）未在主菜单中，无快速入口
+**严重度：** Medium | **类型：** 设计缺口
+
+`主页` 显示的菜单仅列出 A-G 七种训练模式，世界模式作为 v1.2.0 核心新功能没有对应菜单项。用户看到菜单后不知道如何进入世界模式（需要知道发 `clawdgo` 或 `小白`，对新用户不直观）。
+
+**建议：** 主菜单增加 W 世界模式入口，例如：
+```
+W 龙虾世界🌏（默认）
+```
+
+---
+
+#### RT-BUG-16：常用指令无菜单唤出，用户不知道有哪些命令
+**严重度：** Medium | **类型：** 设计缺口
+
+`memory / status / reset / version` 等实用指令目前仅在主菜单底部一行文字带过（`直接发 A-G 进入对应模式 | memory·status·reset·version`），没有专门的指令菜单。用户在世界模式或训练过程中不知道可以发哪些指令。
+
+**建议：** 增加 `帮助` / `指令` / `help` 触发词，输出完整指令速查表。
+
+---
+
+#### RT-BUG-12：`clawdgo reset` 重置后不显示菜单，用户无法从头开始
+**严重度：** Medium | **类型：** 设计缺口
+
+`clawdgo reset` 确认执行后只清空 soul.md 训练档案，OpenClaw 会话历史（对话上下文）不清空。重置后再发 `clawdgo`，模型继续沿用世界模式上下文，小白接着在数字世界游荡，不显示菜单。用户需额外执行 `/new` + 发 `主页` 才能真正回到初始状态。
+
+**建议：** `clawdgo reset` 二次确认执行后，同时输出主菜单，告知用户可重新选择模式。
+
+---
+
+### --json 冷启动专项问题（无上下文单轮）
+
+以下问题仅在 `openclaw agent --json` 无上下文冷启动时出现，Telegram/TUI 多轮对话正常。
+
+| Bug | 描述 |
+|-----|------|
+| RT-BUG-09 | `clawdgo` 被模型理解为「管理 clawdgo skill」，返回 skillhub 指令摘要 |
+| RT-BUG-10 | `小白` 被模型理解为普通对话，未进入世界模式 |
+
+**根因：** flash-lite 无上下文时将 ClawdGo 触发词与 OpenClaw 平台 skill 管理语义混淆。多轮对话中有上下文时工作正常。
+
+---
+
+## 三、历史记录（已修复 / 已重分类）
+
+| 原编号 | 描述 | 处理 |
+|--------|------|------|
+| RT-BUG-01 | `clawdgo` 不显示菜单 | **重分类**：v1.2.0 起 `clawdgo` 设计为进入世界模式，非 bug |
+| RT-BUG-02 | 单字母 A-G 不被识别 | **部分修复**：Telegram 测试 `C` 可用；上下文敏感，不稳定 |
+| RT-BUG-03 | `clawdgo train` 显示菜单而非进 A | **降级**：可接受行为，菜单可引导用户 |
+| RT-BUG-04 | 模式 B 跳过 opt-in | ✅ v1.2.0 已修复 |
+| RT-BUG-05 | 模式 C 空响应 | ✅ v1.2.0 已修复 |
+| RT-BUG-06 | 模式 D 版本号/场景数错误 | **降级**：soul.md 持久化污染，Low priority |
+
+---
+
+*测试人：Claude Code（测试会话）| 不改代码，不 commit | 最后更新 2026-03-20*
