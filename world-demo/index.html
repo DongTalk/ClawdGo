@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>龙虾安全世界 · 可视化地图 Demo</title>
+  <style>
+    :root {
+      --bg: #050d1a;
+      --panel: rgba(10, 20, 40, 0.9);
+      --panel-border: rgba(0, 212, 255, 0.2);
+      --title-bg: #0a1628;
+      --title-border: rgba(0, 212, 255, 0.3);
+      --primary: #00d4ff;
+      --success: #00ff88;
+      --danger: #ff4444;
+      --muted: rgba(255, 255, 255, 0.5);
+      --text: rgba(255, 255, 255, 0.92);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at top, #0b1e36 0%, var(--bg) 42%, #030914 100%);
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+    .app {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+    }
+    .title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 18px;
+      background: var(--title-bg);
+      border-bottom: 1px solid var(--title-border);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+      flex-wrap: wrap;
+    }
+    .title-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      letter-spacing: 0.2px;
+    }
+    .title-left strong {
+      color: var(--primary);
+    }
+    .mode-badge {
+      border: 1px solid var(--panel-border);
+      color: var(--primary);
+      background: rgba(0, 212, 255, 0.08);
+      border-radius: 99px;
+      font-size: 11px;
+      padding: 2px 8px;
+      margin-left: 4px;
+    }
+    .mode-badge.live {
+      color: var(--success);
+      border-color: rgba(0, 255, 136, 0.35);
+      background: rgba(0, 255, 136, 0.08);
+    }
+    .title-right {
+      display: flex;
+      gap: 20px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.86);
+      align-items: center;
+    }
+    .title-right b {
+      color: var(--primary);
+    }
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 65% 35%;
+      min-height: 0;
+    }
+    .map-wrap {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      border-right: 1px solid rgba(0, 212, 255, 0.12);
+      background: #050d1a;
+      overflow: hidden;
+    }
+    #worldCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #050d1a;
+    }
+    .alert-banner {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      z-index: 4;
+      border: 1px solid rgba(255, 68, 68, 0.4);
+      background: rgba(255, 68, 68, 0.15);
+      color: #ffc6c6;
+      padding: 10px 14px;
+      font-size: 13px;
+      letter-spacing: 0.2px;
+      border-radius: 8px;
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      pointer-events: none;
+      text-shadow: 0 0 10px rgba(255, 68, 68, 0.45);
+    }
+    .alert-banner.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .side-panel {
+      background: var(--panel);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      min-width: 0;
+    }
+    .status-card {
+      margin: 14px;
+      border: 1px solid rgba(0, 212, 255, 0.15);
+      border-radius: 8px;
+      background: rgba(0, 212, 255, 0.05);
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.08);
+    }
+    .status-block {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .status-block:last-child {
+      border-bottom: 0;
+    }
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .value-main {
+      color: var(--primary);
+      font-size: 20px;
+      letter-spacing: 0.3px;
+      word-break: break-word;
+    }
+    .value-sub {
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 17px;
+      word-break: break-word;
+    }
+    .value-threat {
+      color: #ff8f8f;
+      font-size: 15px;
+      min-height: 22px;
+      word-break: break-word;
+    }
+    .value-threat.safe {
+      color: var(--success);
+    }
+    .events {
+      margin: 0 14px 14px;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: rgba(0, 212, 255, 0.04);
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .events-head {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 13px;
+    }
+    .events-list {
+      margin: 0;
+      padding: 8px 10px 10px;
+      list-style: none;
+      overflow: auto;
+      font-size: 11px;
+      line-height: 1.8;
+      flex: 1;
+      min-height: 160px;
+    }
+    .event-item {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      column-gap: 8px;
+      align-items: start;
+      color: rgba(255, 255, 255, 0.85);
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+      padding: 4px 0;
+      animation: itemIn 0.3s ease;
+    }
+    .event-item:last-child {
+      border-bottom: 0;
+    }
+    .event-type-threat {
+      color: #ff6f6f;
+    }
+    .event-type-safe {
+      color: var(--success);
+    }
+    .event-type-move {
+      color: #52a7ff;
+    }
+    .event-text {
+      word-break: break-word;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    @keyframes itemIn {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @media (max-width: 980px) {
+      body {
+        overflow: auto;
+      }
+      .main {
+        grid-template-columns: 1fr;
+        grid-template-rows: 58vh auto;
+      }
+      .map-wrap {
+        border-right: 0;
+        border-bottom: 1px solid rgba(0, 212, 255, 0.12);
+      }
+      .events-list {
+        max-height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="title-bar">
+      <div class="title-left">
+        <span>🦞 <strong>龙虾安全世界 · LIVE</strong></span>
+        <span class="mode-badge" id="modeBadge">DEMO</span>
+      </div>
+      <div class="title-right">
+        <span id="nameLevel">小白 · Lv.3</span>
+        <span>已解决威胁: <b id="resolvedCount">12</b></span>
+      </div>
+    </header>
+    <main class="main">
+      <section class="map-wrap">
+        <canvas id="worldCanvas"></canvas>
+        <div class="alert-banner" id="alertBanner">⚠ 检测到安全威胁</div>
+      </section>
+      <aside class="side-panel">
+        <div class="status-card">
+          <div class="status-block">
+            <div class="label">📍 当前位置</div>
+            <div class="value-main" id="locationText">数字市集</div>
+          </div>
+          <div class="status-block">
+            <div class="label">🧠 心情状态</div>
+            <div class="value-sub" id="moodText">🙂 好奇</div>
+          </div>
+          <div class="status-block">
+            <div class="label">⚡ 当前威胁</div>
+            <div class="value-threat" id="threatText">发现可疑网络请求</div>
+          </div>
+        </div>
+        <div class="events">
+          <div class="events-head">📋 实时事件流</div>
+          <ul class="events-list" id="eventsList"></ul>
+        </div>
+      </aside>
+    </main>
+  </div>
+  <script>
+    const NODES = [
+      { name: '数字市集', x: 0.35, y: 0.45, color: '#00d4ff', icon: '🏪', type: 'market' },
+      { name: '安全岛', x: 0.72, y: 0.22, color: '#00ff88', icon: '🛡', type: 'safe' },
+      { name: '漏洞沼泽', x: 0.18, y: 0.68, color: '#ff6b6b', icon: '🌿', type: 'danger' },
+      { name: '社交网络', x: 0.55, y: 0.12, color: '#a78bfa', icon: '📡', type: 'social' },
+      { name: '数据中心', x: 0.78, y: 0.62, color: '#fbbf24', icon: '🖥', type: 'data' },
+      { name: '密码丛林', x: 0.12, y: 0.28, color: '#34d399', icon: '🔐', type: 'forest' },
+      { name: '暗网交易所', x: 0.62, y: 0.78, color: '#f87171', icon: '💀', type: 'darknet' },
+      { name: '防火墙要塞', x: 0.45, y: 0.50, color: '#60a5fa', icon: '🔥', type: 'defense' }
+    ];
+    const EDGES = [
+      ['数字市集', '安全岛'],
+      ['数字市集', '社交网络'],
+      ['数字市集', '防火墙要塞'],
+      ['数字市集', '漏洞沼泽'],
+      ['安全岛', '数据中心'],
+      ['社交网络', '密码丛林'],
+      ['社交网络', '防火墙要塞'],
+      ['漏洞沼泽', '暗网交易所'],
+      ['防火墙要塞', '数据中心'],
+      ['防火墙要塞', '暗网交易所'],
+      ['密码丛林', '漏洞沼泽'],
+      ['数据中心', '暗网交易所']
+    ];
+    const DEMO_SCRIPT = [
+      { t: 0, location: '数字市集', mood: '好奇', threat: '发现可疑网络请求', event: '▶ 收到不明来源数据包' },
+      { t: 8, location: '防火墙要塞', mood: '警惕', threat: '正在分析流量特征', event: '→ 移动至防火墙要塞' },
+      { t: 16, location: '防火墙要塞', mood: '紧张', threat: '发现端口扫描行为', event: '▶ 检测到端口扫描' },
+      { t: 24, location: '安全岛', mood: '放松', threat: null, event: '✓ 威胁成功拦截' },
+      { t: 32, location: '社交网络', mood: '警惕', threat: '可疑社工攻击消息', event: '▶ 收到钓鱼链接' },
+      { t: 40, location: '漏洞沼泽', mood: '危险', threat: '触发 CVE 扫描探针', event: '▶ 发现漏洞扫描器' },
+      { t: 48, location: '数字市集', mood: '紧张', threat: '正在上报安全事件', event: '→ 返回市集汇报' },
+      { t: 56, location: '数字市集', mood: '自豪', threat: null, event: '✓ 本轮训练完成 +12XP' }
+    ];
+    const MOOD_ICON = {
+      好奇: '🙂',
+      放松: '😌',
+      警惕: '😰',
+      紧张: '😟',
+      危险: '😨',
+      恐慌: '😱',
+      自豪: '😎'
+    };
+    const DANGER_MOODS = new Set(['危险', '恐慌']);
+    const DANGER_LOCATIONS = new Set(['漏洞沼泽', '暗网交易所']);
+    const canvas = document.getElementById('worldCanvas');
+    const ctx = canvas.getContext('2d');
+    const modeBadge = document.getElementById('modeBadge');
+    const nameLevel = document.getElementById('nameLevel');
+    const resolvedCount = document.getElementById('resolvedCount');
+    const locationText = document.getElementById('locationText');
+    const moodText = document.getElementById('moodText');
+    const threatText = document.getElementById('threatText');
+    const eventsList = document.getElementById('eventsList');
+    const alertBanner = document.getElementById('alertBanner');
+    const nodeMap = Object.fromEntries(NODES.map((node) => [node.name, node]));
+    const particles = EDGES.flatMap((edge) => {
+      const count = Math.random() > 0.5 ? 3 : 2;
+      return Array.from({ length: count }, (_, idx) => ({
+        edge,
+        offset: (idx / count + Math.random() * 0.2) % 1
+      }));
+    });
+    let gridCanvas = document.createElement('canvas');
+    let flashTimes = [];
+    let dangerActive = false;
+    let bannerTimer = null;
+    const state = {
+      xiaobai_name: '小白',
+      level: 3,
+      location: '数字市集',
+      mood: '好奇',
+      threat: '发现可疑网络请求',
+      resolved_threats: 12,
+      last_event: '▶ 收到不明来源数据包',
+      last_updated: new Date().toISOString()
+    };
+    const motion = {
+      currentX: 0,
+      currentY: 0,
+      startX: 0,
+      startY: 0,
+      targetX: 0,
+      targetY: 0,
+      startTime: 0,
+      active: false,
+      bounceUntil: 0
+    };
+    let mode = 'demo';
+    let events = [];
+    let demoTimer = null;
+    let demoStartTs = Date.now();
+    let demoStepIndex = -1;
+    let demoResolved = 12;
+    let lastLiveSignature = '';
+    function getNodePosition(name) {
+      const node = nodeMap[name] || NODES[0];
+      return { x: node.x * canvas.width, y: node.y * canvas.height };
+    }
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const ratio = Math.max(1, window.devicePixelRatio || 1);
+      canvas.width = Math.floor(rect.width * ratio);
+      canvas.height = Math.floor(rect.height * ratio);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(ratio, ratio);
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      buildGrid();
+      const p = getNodePosition(state.location);
+      motion.currentX = p.x;
+      motion.currentY = p.y;
+      motion.startX = p.x;
+      motion.startY = p.y;
+      motion.targetX = p.x;
+      motion.targetY = p.y;
+    }
+    function buildGrid() {
+      gridCanvas = document.createElement('canvas');
+      gridCanvas.width = canvas.width;
+      gridCanvas.height = canvas.height;
+      const g = gridCanvas.getContext('2d');
+      const side = 40;
+      const h = Math.sqrt(3) * side;
+      const dx = 1.5 * side;
+      const dy = h;
+      g.fillStyle = '#050d1a';
+      g.fillRect(0, 0, gridCanvas.width, gridCanvas.height);
+      g.strokeStyle = 'rgba(0, 212, 255, 0.04)';
+      g.lineWidth = 0.5;
+      for (let col = -1; col < gridCanvas.width / dx + 2; col += 1) {
+        for (let row = -1; row < gridCanvas.height / dy + 2; row += 1) {
+          const cx = col * dx;
+          const cy = row * dy + (col % 2 ? dy / 2 : 0);
+          drawHex(g, cx, cy, side);
+        }
+      }
+    }
+    function drawHex(g, cx, cy, side) {
+      g.beginPath();
+      for (let i = 0; i < 6; i += 1) {
+        const a = (Math.PI / 3) * i + Math.PI / 6;
+        const x = cx + side * Math.cos(a);
+        const y = cy + side * Math.sin(a);
+        if (i === 0) g.moveTo(x, y);
+        else g.lineTo(x, y);
+      }
+      g.closePath();
+      g.stroke();
+    }
+    function startMoveTo(locationName, now) {
+      const target = getNodePosition(locationName);
+      if (Math.hypot(target.x - motion.currentX, target.y - motion.currentY) < 1) {
+        motion.currentX = target.x;
+        motion.currentY = target.y;
+        return;
+      }
+      motion.startX = motion.currentX;
+      motion.startY = motion.currentY;
+      motion.targetX = target.x;
+      motion.targetY = target.y;
+      motion.startTime = now;
+      motion.active = true;
+    }
+    function updateMotion(now) {
+      if (motion.active) {
+        const t = Math.min(1, (now - motion.startTime) / 2000);
+        motion.currentX = motion.startX + (motion.targetX - motion.startX) * t;
+        motion.currentY = motion.startY + (motion.targetY - motion.startY) * t;
+        if (t >= 1) {
+          motion.active = false;
+          motion.bounceUntil = now + 1000;
+        }
+      }
+    }
+    function addEvent(text) {
+      if (!text) return;
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      let type = 'threat';
+      if (text.includes('✓')) type = 'safe';
+      else if (text.includes('→')) type = 'move';
+      events.unshift({ id: `${Date.now()}-${Math.random()}`, time: `${hh}:${mm}`, text, type });
+      events = events.slice(0, 10);
+      renderEvents();
+    }
+    function renderEvents() {
+      eventsList.innerHTML = '';
+      events.forEach((item) => {
+        const li = document.createElement('li');
+        li.className = 'event-item';
+        const marker = document.createElement('span');
+        marker.className = `event-type-${item.type}`;
+        marker.textContent = item.type === 'safe' ? '✓' : item.type === 'move' ? '→' : '▶';
+        const text = document.createElement('span');
+        text.className = 'event-text';
+        text.textContent = `${item.time} ${item.text.replace(/^[✓▶→]\s*/, '')}`;
+        li.appendChild(marker);
+        li.appendChild(text);
+        eventsList.appendChild(li);
+      });
+    }
+    function setMode(next) {
+      mode = next;
+      modeBadge.textContent = next.toUpperCase();
+      modeBadge.classList.toggle('live', next === 'live');
+    }
+    function triggerAlert(message) {
+      alertBanner.textContent = `⚠ ${message || '检测到安全威胁'}`;
+      alertBanner.classList.add('show');
+      if (bannerTimer) clearTimeout(bannerTimer);
+      bannerTimer = setTimeout(() => alertBanner.classList.remove('show'), 5000);
+      const base = performance.now();
+      flashTimes = [base, base + 300, base + 600];
+    }
+    function isDangerState(nextState) {
+      return DANGER_MOODS.has(nextState.mood) || (mode === 'demo' && DANGER_LOCATIONS.has(nextState.location));
+    }
+    function applyState(next, eventText = null) {
+      const prevLocation = state.location;
+      Object.assign(state, next);
+      const now = performance.now();
+      if (state.location !== prevLocation) {
+        startMoveTo(state.location, now);
+      }
+      const moodEmoji = MOOD_ICON[state.mood] || '🫧';
+      nameLevel.textContent = `${state.xiaobai_name || '小白'} · Lv.${state.level || 3}`;
+      resolvedCount.textContent = String(state.resolved_threats ?? 0);
+      locationText.textContent = state.location || '数字市集';
+      moodText.textContent = `${moodEmoji} ${state.mood || '好奇'}`;
+      if (state.threat) {
+        threatText.classList.remove('safe');
+        threatText.textContent = state.threat;
+      } else {
+        threatText.classList.add('safe');
+        threatText.textContent = '暂无直接威胁，环境稳定';
+      }
+      const nowDanger = isDangerState(state);
+      if (nowDanger && !dangerActive) {
+        triggerAlert(state.threat || '检测到安全威胁');
+      }
+      dangerActive = nowDanger;
+      if (eventText) addEvent(eventText);
+    }
+    function drawEdges(now) {
+      ctx.save();
+      ctx.setLineDash([4, 8]);
+      ctx.strokeStyle = 'rgba(0,212,255,0.12)';
+      ctx.lineWidth = 1;
+      for (const [a, b] of EDGES) {
+        const p1 = getNodePosition(a);
+        const p2 = getNodePosition(b);
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      }
+      ctx.restore();
+      for (const p of particles) {
+        const [a, b] = p.edge;
+        const p1 = getNodePosition(a);
+        const p2 = getNodePosition(b);
+        const progress = ((now / 1000) / 4 + p.offset) % 1;
+        const x = p1.x + (p2.x - p1.x) * progress;
+        const y = p1.y + (p2.y - p1.y) * progress;
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(0,212,255,0.7)';
+        ctx.arc(x, y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    function drawNodes(now) {
+      for (const node of NODES) {
+        const pos = getNodePosition(node.name);
+        const isCurrent = node.name === state.location;
+        const pulse = 0.4 + 0.6 * ((Math.sin((now / 1000) * Math.PI) + 1) / 2);
+        const glowRadius = isCurrent ? 40 + pulse * 16 : 29;
+        const grad = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, glowRadius);
+        grad.addColorStop(0, `${node.color}70`);
+        grad.addColorStop(1, `${node.color}00`);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, glowRadius, 0, Math.PI * 2);
+        ctx.fill();
+        const radius = isCurrent ? 20 : 16;
+        ctx.beginPath();
+        ctx.fillStyle = `${node.color}26`;
+        ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.strokeStyle = node.color;
+        ctx.lineWidth = 1.5;
+        ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.font = "18px 'Microsoft YaHei', 'PingFang SC', sans-serif";
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(node.icon, pos.x, pos.y + 0.5);
+        ctx.font = `${isCurrent ? 12 : 11}px 'Microsoft YaHei', 'PingFang SC', sans-serif`;
+        ctx.fillStyle = isCurrent ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.6)';
+        ctx.fillText(node.name, pos.x, pos.y + 24);
+      }
+    }
+    function drawXiaobai(now) {
+      let y = motion.currentY;
+      if (now < motion.bounceUntil) {
+        const t = (motion.bounceUntil - now) / 1000;
+        y += Math.sin((1 - t) * Math.PI * 4) * 4;
+      }
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.arc(motion.currentX, y, 22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = "28px 'Microsoft YaHei', 'PingFang SC', sans-serif";
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('🦞', motion.currentX, y + 1);
+    }
+    function drawAlertOverlay(now) {
+      flashTimes = flashTimes.filter((t) => now <= t + 180);
+      if (!flashTimes.length) return;
+      let alpha = 0;
+      flashTimes.forEach((t) => {
+        if (now >= t && now <= t + 180) {
+          const ratio = (now - t) / 180;
+          alpha = Math.max(alpha, Math.sin(ratio * Math.PI) * 0.08);
+        }
+      });
+      if (alpha <= 0) return;
+      ctx.fillStyle = `rgba(255,0,0,${alpha.toFixed(3)})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    function render(now) {
+      updateMotion(now);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(gridCanvas, 0, 0, canvas.width, canvas.height);
+      drawEdges(now);
+      drawNodes(now);
+      drawXiaobai(now);
+      drawAlertOverlay(now);
+      requestAnimationFrame(render);
+    }
+    function startDemo() {
+      if (demoTimer) clearInterval(demoTimer);
+      demoStepIndex = -1;
+      demoStartTs = Date.now();
+      demoTimer = setInterval(() => {
+        if (mode !== 'demo') return;
+        const elapsed = ((Date.now() - demoStartTs) / 1000) % 60;
+        let index = 0;
+        for (let i = 0; i < DEMO_SCRIPT.length; i += 1) {
+          if (elapsed >= DEMO_SCRIPT[i].t) index = i;
+        }
+        if (index < demoStepIndex) demoStepIndex = -1;
+        if (index === demoStepIndex) return;
+        demoStepIndex = index;
+        const step = DEMO_SCRIPT[index];
+        if (step.event.startsWith('✓')) demoResolved += 1;
+        applyState(
+          {
+            location: step.location,
+            mood: step.mood,
+            threat: step.threat,
+            resolved_threats: demoResolved,
+            last_event: step.event,
+            last_updated: new Date().toISOString()
+          },
+          step.event
+        );
+      }, 240);
+    }
+    async function fetchWorldState() {
+      try {
+        const response = await fetch(`world-state.json?ts=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return await response.json();
+      } catch {
+        return null;
+      }
+    }
+    async function pollWorldState() {
+      const data = await fetchWorldState();
+      if (data) {
+        if (mode !== 'live') {
+          setMode('live');
+          addEvent('✓ world-state.json 已接入，进入真实状态模式');
+        }
+        const signature = `${data.last_updated || ''}|${data.last_event || ''}|${data.location || ''}|${data.mood || ''}`;
+        const shouldEmitEvent = signature !== lastLiveSignature && data.last_event;
+        lastLiveSignature = signature;
+        applyState(
+          {
+            xiaobai_name: data.xiaobai_name || state.xiaobai_name,
+            level: Number.isFinite(Number(data.level)) ? Number(data.level) : state.level,
+            location: data.location || state.location,
+            mood: data.mood || state.mood,
+            threat: data.threat ?? null,
+            resolved_threats: Number.isFinite(Number(data.resolved_threats))
+              ? Number(data.resolved_threats)
+              : state.resolved_threats,
+            last_event: data.last_event || state.last_event,
+            last_updated: data.last_updated || new Date().toISOString()
+          },
+          shouldEmitEvent ? data.last_event : null
+        );
+      } else if (mode !== 'demo') {
+        setMode('demo');
+        addEvent('→ world-state.json 不可用，切换到 Demo 模式');
+        startDemo();
+      }
+    }
+    function init() {
+      resizeCanvas();
+      setMode('demo');
+      window.addEventListener('resize', resizeCanvas);
+      const initStep = DEMO_SCRIPT[0];
+      applyState(
+        {
+          location: initStep.location,
+          mood: initStep.mood,
+          threat: initStep.threat,
+          resolved_threats: 12,
+          last_event: initStep.event,
+          last_updated: new Date().toISOString()
+        },
+        initStep.event
+      );
+      startDemo();
+      pollWorldState();
+      setInterval(pollWorldState, 2000);
+      requestAnimationFrame(render);
+    }
+    init();
+  </script>
+</body>
+</html>
