@@ -3,286 +3,380 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>龙虾安全世界 · 可视化地图 Demo</title>
+  <title>龙虾安全世界 · 可视化地图 v2</title>
   <style>
     :root {
       --bg: #050d1a;
-      --panel: rgba(10, 20, 40, 0.9);
-      --panel-border: rgba(0, 212, 255, 0.2);
-      --title-bg: #0a1628;
-      --title-border: rgba(0, 212, 255, 0.3);
+      --panel: rgba(8, 16, 30, 0.94);
+      --panel-border: rgba(30, 58, 95, 0.9);
+      --text: rgba(238, 248, 255, 0.96);
+      --muted: rgba(200, 220, 245, 0.72);
       --primary: #00d4ff;
-      --success: #00ff88;
+      --safe: #00ff88;
       --danger: #ff4444;
-      --muted: rgba(255, 255, 255, 0.5);
-      --text: rgba(255, 255, 255, 0.92);
+      --road: #111827;
+      --topbar: rgba(5, 12, 24, 0.98);
+      --topbar-border: rgba(30, 58, 95, 0.7);
     }
+
     * {
       box-sizing: border-box;
     }
+
     html,
     body {
-      margin: 0;
       width: 100%;
       height: 100%;
-      background: radial-gradient(circle at top, #0b1e36 0%, var(--bg) 42%, #030914 100%);
+      margin: 0;
       color: var(--text);
-      font-family: 'Courier New', monospace;
+      background:
+        radial-gradient(circle at 16% 8%, rgba(0, 212, 255, 0.08), transparent 34%),
+        radial-gradient(circle at 92% 94%, rgba(245, 158, 11, 0.08), transparent 30%),
+        var(--bg);
+      font-family: "Press Start 2P", "Courier New", monospace;
       overflow: hidden;
     }
+
     .app {
       display: flex;
       flex-direction: column;
       width: 100%;
       height: 100%;
     }
-    .title-bar {
+
+    .topbar {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       gap: 16px;
       padding: 12px 18px;
-      background: var(--title-bg);
-      border-bottom: 1px solid var(--title-border);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
-      flex-wrap: wrap;
+      background: var(--topbar);
+      border-bottom: 1px solid var(--topbar-border);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.38);
+      z-index: 4;
     }
-    .title-left {
+
+    .title-group {
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 15px;
+      min-width: 0;
+    }
+
+    .title {
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #dff7ff;
       letter-spacing: 0.2px;
     }
-    .title-left strong {
-      color: var(--primary);
-    }
+
     .mode-badge {
-      border: 1px solid var(--panel-border);
+      border: 1px solid rgba(0, 212, 255, 0.45);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 10px;
       color: var(--primary);
       background: rgba(0, 212, 255, 0.08);
-      border-radius: 99px;
-      font-size: 11px;
-      padding: 2px 8px;
-      margin-left: 4px;
+      min-width: 44px;
+      text-align: center;
     }
+
     .mode-badge.live {
-      color: var(--success);
-      border-color: rgba(0, 255, 136, 0.35);
-      background: rgba(0, 255, 136, 0.08);
+      border-color: rgba(0, 255, 136, 0.55);
+      color: var(--safe);
+      background: rgba(0, 255, 136, 0.11);
     }
-    .title-right {
+
+    .top-stats {
       display: flex;
-      gap: 20px;
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.86);
       align-items: center;
+      gap: 18px;
+      font-size: 12px;
+      color: rgba(225, 238, 255, 0.9);
+      white-space: nowrap;
     }
-    .title-right b {
+
+    .top-stats b {
       color: var(--primary);
     }
+
     .main {
       flex: 1;
+      min-height: 0;
       display: grid;
       grid-template-columns: 65% 35%;
-      min-height: 0;
     }
-    .map-wrap {
+
+    .map-shell {
       position: relative;
-      min-width: 0;
       min-height: 0;
-      border-right: 1px solid rgba(0, 212, 255, 0.12);
-      background: #050d1a;
-      overflow: hidden;
+      min-width: 0;
+      border-right: 1px solid rgba(30, 58, 95, 0.7);
+      background: #020916;
     }
-    #worldCanvas {
+
+    #game-container {
       width: 100%;
       height: 100%;
+    }
+
+    #game-container canvas {
       display: block;
-      background: #050d1a;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
     }
-    .alert-banner {
+
+    .map-overlay {
       position: absolute;
-      top: 16px;
-      left: 16px;
-      right: 16px;
-      z-index: 4;
-      border: 1px solid rgba(255, 68, 68, 0.4);
-      background: rgba(255, 68, 68, 0.15);
-      color: #ffc6c6;
-      padding: 10px 14px;
-      font-size: 13px;
-      letter-spacing: 0.2px;
-      border-radius: 8px;
-      opacity: 0;
-      transform: translateY(-8px);
-      transition: opacity 0.25s ease, transform 0.25s ease;
+      left: 12px;
+      bottom: 12px;
+      padding: 6px 10px;
+      border-radius: 7px;
+      border: 1px solid rgba(0, 212, 255, 0.22);
+      background: rgba(4, 14, 28, 0.78);
+      font-size: 10px;
+      color: rgba(199, 224, 255, 0.85);
       pointer-events: none;
-      text-shadow: 0 0 10px rgba(255, 68, 68, 0.45);
     }
-    .alert-banner.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .side-panel {
+
+    .panel {
+      min-height: 0;
+      min-width: 0;
       background: var(--panel);
       display: flex;
       flex-direction: column;
-      min-height: 0;
-      min-width: 0;
+      padding: 14px;
+      gap: 12px;
     }
-    .status-card {
-      margin: 14px;
-      border: 1px solid rgba(0, 212, 255, 0.15);
-      border-radius: 8px;
-      background: rgba(0, 212, 255, 0.05);
-      overflow: hidden;
-      box-shadow: 0 0 20px rgba(0, 212, 255, 0.08);
-    }
-    .status-block {
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    }
-    .status-block:last-child {
-      border-bottom: 0;
-    }
-    .label {
-      color: var(--muted);
-      font-size: 12px;
-      margin-bottom: 6px;
-    }
-    .value-main {
-      color: var(--primary);
-      font-size: 20px;
-      letter-spacing: 0.3px;
-      word-break: break-word;
-    }
-    .value-sub {
-      color: rgba(255, 255, 255, 0.92);
-      font-size: 17px;
-      word-break: break-word;
-    }
-    .value-threat {
-      color: #ff8f8f;
-      font-size: 15px;
-      min-height: 22px;
-      word-break: break-word;
-    }
-    .value-threat.safe {
-      color: var(--success);
-    }
+
+    .status-card,
     .events {
-      margin: 0 14px 14px;
       border: 1px solid var(--panel-border);
-      border-radius: 8px;
-      overflow: hidden;
-      background: rgba(0, 212, 255, 0.04);
-      min-height: 0;
+      border-radius: 10px;
+      background: rgba(14, 28, 48, 0.7);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02), 0 8px 18px rgba(0, 0, 0, 0.28);
+    }
+
+    .status-card {
+      padding: 12px;
       display: flex;
       flex-direction: column;
+      gap: 12px;
     }
+
+    .loc-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #eff9ff;
+    }
+
+    .loc-icon {
+      font-size: 16px;
+    }
+
+    .loc-name {
+      font-size: 14px;
+      color: #f6fdff;
+      word-break: break-word;
+    }
+
+    .mood-row,
+    .threat-row {
+      font-size: 12px;
+      line-height: 1.55;
+      color: rgba(220, 236, 255, 0.92);
+      word-break: break-word;
+    }
+
+    .threat-row.safe {
+      color: var(--safe);
+    }
+
+    .progress-bars {
+      border: 1px solid rgba(30, 58, 95, 0.85);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(7, 15, 26, 0.74);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      column-gap: 8px;
+      row-gap: 8px;
+      align-items: center;
+    }
+
+    .bar-label {
+      color: var(--muted);
+      font-size: 11px;
+      min-width: 24px;
+      text-align: right;
+    }
+
+    .bar-track {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .bar-fill {
+      width: 0;
+      height: 100%;
+      transition: width 0.35s ease;
+    }
+
+    .bar-fill.hp {
+      background: linear-gradient(90deg, #0dcf7a 0%, #32f0b4 100%);
+    }
+
+    .bar-fill.xp {
+      background: linear-gradient(90deg, #00baf2 0%, #00d4ff 100%);
+    }
+
+    .events {
+      flex: 1;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
     .events-head {
       padding: 10px 12px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 13px;
+      font-size: 12px;
+      color: #ecf8ff;
     }
+
     .events-list {
       margin: 0;
       padding: 8px 10px 10px;
       list-style: none;
       overflow: auto;
-      font-size: 11px;
-      line-height: 1.8;
-      flex: 1;
-      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
+
     .event-item {
       display: grid;
-      grid-template-columns: auto 1fr;
-      column-gap: 8px;
-      align-items: start;
-      color: rgba(255, 255, 255, 0.85);
-      border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
-      padding: 4px 0;
-      animation: itemIn 0.3s ease;
+      grid-template-columns: 16px 1fr;
+      gap: 8px;
+      font-size: 11px;
+      color: rgba(222, 236, 250, 0.88);
+      line-height: 1.4;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+      padding-bottom: 5px;
     }
+
     .event-item:last-child {
       border-bottom: 0;
+      padding-bottom: 2px;
     }
-    .event-type-threat {
-      color: #ff6f6f;
+
+    .event-symbol {
+      text-align: center;
+      font-weight: bold;
+      color: var(--primary);
     }
-    .event-type-safe {
-      color: var(--success);
+
+    .event-item.safe .event-symbol {
+      color: var(--safe);
     }
-    .event-type-move {
-      color: #52a7ff;
+
+    .event-item.danger .event-symbol {
+      color: #ff7e7e;
     }
-    .event-text {
-      word-break: break-word;
-      color: rgba(255, 255, 255, 0.8);
+
+    .event-item.move .event-symbol {
+      color: #84bbff;
     }
-    @keyframes itemIn {
-      from {
-        opacity: 0;
-        transform: translateY(-6px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+
+    .updated {
+      margin-top: 2px;
+      font-size: 10px;
+      color: rgba(185, 206, 230, 0.68);
     }
-    @media (max-width: 980px) {
+
+    @media (max-width: 1050px) {
       body {
         overflow: auto;
       }
+
       .main {
         grid-template-columns: 1fr;
-        grid-template-rows: 58vh auto;
+        grid-template-rows: 56vh auto;
       }
-      .map-wrap {
+
+      .map-shell {
         border-right: 0;
-        border-bottom: 1px solid rgba(0, 212, 255, 0.12);
+        border-bottom: 1px solid rgba(30, 58, 95, 0.7);
       }
-      .events-list {
-        max-height: 220px;
+
+      .events {
+        min-height: 220px;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .top-stats {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .title {
+        font-size: 12px;
       }
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <header class="title-bar">
-      <div class="title-left">
-        <span>🦞 <strong>龙虾安全世界 · LIVE</strong></span>
-        <span class="mode-badge" id="modeBadge">DEMO</span>
+    <header class="topbar">
+      <div class="title-group">
+        <div class="title">🦞 龙虾安全世界 · 像素城市</div>
+        <div class="mode-badge" id="modeBadge">DEMO</div>
       </div>
-      <div class="title-right">
+      <div class="top-stats">
         <span id="nameLevel">小白 · Lv.3</span>
-        <span>已解决威胁: <b id="resolvedCount">12</b></span>
+        <span>已解决威胁: <b id="resolvedCount">35</b></span>
       </div>
     </header>
+
     <main class="main">
-      <section class="map-wrap">
-        <canvas id="worldCanvas"></canvas>
-        <div class="alert-banner" id="alertBanner">⚠ 检测到安全威胁</div>
+      <section class="map-shell">
+        <div id="game-container"></div>
+        <div class="map-overlay">WASD 不需要控制，小白会根据状态自动行动</div>
       </section>
-      <aside class="side-panel">
+
+      <aside class="panel">
         <div class="status-card">
-          <div class="status-block">
-            <div class="label">📍 当前位置</div>
-            <div class="value-main" id="locationText">数字市集</div>
+          <div class="loc-row">
+            <span class="loc-icon" id="locationIcon">🏠</span>
+            <span class="loc-name" id="locationText">小白的家</span>
           </div>
-          <div class="status-block">
-            <div class="label">🧠 心情状态</div>
-            <div class="value-sub" id="moodText">🙂 好奇</div>
+          <div class="mood-row" id="moodText">🙂 好奇</div>
+          <div class="threat-row" id="threatText">发现陌生设备连入家庭网络</div>
+
+          <div class="progress-bars">
+            <div class="bar-label">HP</div>
+            <div class="bar-track"><div class="bar-fill hp" id="hpBar"></div></div>
+            <div class="bar-label">XP</div>
+            <div class="bar-track"><div class="bar-fill xp" id="xpBar"></div></div>
           </div>
-          <div class="status-block">
-            <div class="label">⚡ 当前威胁</div>
-            <div class="value-threat" id="threatText">发现可疑网络请求</div>
-          </div>
+
+          <div class="updated" id="updatedText">最后更新: --</div>
         </div>
+
         <div class="events">
           <div class="events-head">📋 实时事件流</div>
           <ul class="events-list" id="eventsList"></ul>
@@ -290,443 +384,1375 @@
       </aside>
     </main>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
   <script>
-    const NODES = [
-      { name: '数字市集', x: 0.35, y: 0.45, color: '#00d4ff', icon: '🏪', type: 'market' },
-      { name: '安全岛', x: 0.72, y: 0.22, color: '#00ff88', icon: '🛡', type: 'safe' },
-      { name: '漏洞沼泽', x: 0.18, y: 0.68, color: '#ff6b6b', icon: '🌿', type: 'danger' },
-      { name: '社交网络', x: 0.55, y: 0.12, color: '#a78bfa', icon: '📡', type: 'social' },
-      { name: '数据中心', x: 0.78, y: 0.62, color: '#fbbf24', icon: '🖥', type: 'data' },
-      { name: '密码丛林', x: 0.12, y: 0.28, color: '#34d399', icon: '🔐', type: 'forest' },
-      { name: '暗网交易所', x: 0.62, y: 0.78, color: '#f87171', icon: '💀', type: 'darknet' },
-      { name: '防火墙要塞', x: 0.45, y: 0.50, color: '#60a5fa', icon: '🔥', type: 'defense' }
-    ];
-    const EDGES = [
-      ['数字市集', '安全岛'],
-      ['数字市集', '社交网络'],
-      ['数字市集', '防火墙要塞'],
-      ['数字市集', '漏洞沼泽'],
-      ['安全岛', '数据中心'],
-      ['社交网络', '密码丛林'],
-      ['社交网络', '防火墙要塞'],
-      ['漏洞沼泽', '暗网交易所'],
-      ['防火墙要塞', '数据中心'],
-      ['防火墙要塞', '暗网交易所'],
-      ['密码丛林', '漏洞沼泽'],
-      ['数据中心', '暗网交易所']
-    ];
-    const DEMO_SCRIPT = [
-      { t: 0, location: '数字市集', mood: '好奇', threat: '发现可疑网络请求', event: '▶ 收到不明来源数据包' },
-      { t: 8, location: '防火墙要塞', mood: '警惕', threat: '正在分析流量特征', event: '→ 移动至防火墙要塞' },
-      { t: 16, location: '防火墙要塞', mood: '紧张', threat: '发现端口扫描行为', event: '▶ 检测到端口扫描' },
-      { t: 24, location: '安全岛', mood: '放松', threat: null, event: '✓ 威胁成功拦截' },
-      { t: 32, location: '社交网络', mood: '警惕', threat: '可疑社工攻击消息', event: '▶ 收到钓鱼链接' },
-      { t: 40, location: '漏洞沼泽', mood: '危险', threat: '触发 CVE 扫描探针', event: '▶ 发现漏洞扫描器' },
-      { t: 48, location: '数字市集', mood: '紧张', threat: '正在上报安全事件', event: '→ 返回市集汇报' },
-      { t: 56, location: '数字市集', mood: '自豪', threat: null, event: '✓ 本轮训练完成 +12XP' }
-    ];
-    const MOOD_ICON = {
-      好奇: '🙂',
-      放松: '😌',
-      警惕: '😰',
-      紧张: '😟',
-      危险: '😨',
-      恐慌: '😱',
-      自豪: '😎'
-    };
-    const DANGER_MOODS = new Set(['危险', '恐慌']);
-    const DANGER_LOCATIONS = new Set(['漏洞沼泽', '暗网交易所']);
-    const canvas = document.getElementById('worldCanvas');
-    const ctx = canvas.getContext('2d');
-    const modeBadge = document.getElementById('modeBadge');
-    const nameLevel = document.getElementById('nameLevel');
-    const resolvedCount = document.getElementById('resolvedCount');
-    const locationText = document.getElementById('locationText');
-    const moodText = document.getElementById('moodText');
-    const threatText = document.getElementById('threatText');
-    const eventsList = document.getElementById('eventsList');
-    const alertBanner = document.getElementById('alertBanner');
-    const nodeMap = Object.fromEntries(NODES.map((node) => [node.name, node]));
-    const particles = EDGES.flatMap((edge) => {
-      const count = Math.random() > 0.5 ? 3 : 2;
-      return Array.from({ length: count }, (_, idx) => ({
-        edge,
-        offset: (idx / count + Math.random() * 0.2) % 1
-      }));
-    });
-    let gridCanvas = document.createElement('canvas');
-    let flashTimes = [];
-    let dangerActive = false;
-    let bannerTimer = null;
-    const state = {
-      xiaobai_name: '小白',
-      level: 3,
-      location: '数字市集',
-      mood: '好奇',
-      threat: '发现可疑网络请求',
-      resolved_threats: 12,
-      last_event: '▶ 收到不明来源数据包',
-      last_updated: new Date().toISOString()
-    };
-    const motion = {
-      currentX: 0,
-      currentY: 0,
-      startX: 0,
-      startY: 0,
-      targetX: 0,
-      targetY: 0,
-      startTime: 0,
-      active: false,
-      bounceUntil: 0
-    };
-    let mode = 'demo';
-    let events = [];
-    let demoTimer = null;
-    let demoStartTs = Date.now();
-    let demoStepIndex = -1;
-    let demoResolved = 12;
-    let lastLiveSignature = '';
-    function getNodePosition(name) {
-      const node = nodeMap[name] || NODES[0];
-      return { x: node.x * canvas.width, y: node.y * canvas.height };
-    }
-    function resizeCanvas() {
-      const rect = canvas.getBoundingClientRect();
-      const ratio = Math.max(1, window.devicePixelRatio || 1);
-      canvas.width = Math.floor(rect.width * ratio);
-      canvas.height = Math.floor(rect.height * ratio);
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.scale(ratio, ratio);
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-      buildGrid();
-      const p = getNodePosition(state.location);
-      motion.currentX = p.x;
-      motion.currentY = p.y;
-      motion.startX = p.x;
-      motion.startY = p.y;
-      motion.targetX = p.x;
-      motion.targetY = p.y;
-    }
-    function buildGrid() {
-      gridCanvas = document.createElement('canvas');
-      gridCanvas.width = canvas.width;
-      gridCanvas.height = canvas.height;
-      const g = gridCanvas.getContext('2d');
-      const side = 40;
-      const h = Math.sqrt(3) * side;
-      const dx = 1.5 * side;
-      const dy = h;
-      g.fillStyle = '#050d1a';
-      g.fillRect(0, 0, gridCanvas.width, gridCanvas.height);
-      g.strokeStyle = 'rgba(0, 212, 255, 0.04)';
-      g.lineWidth = 0.5;
-      for (let col = -1; col < gridCanvas.width / dx + 2; col += 1) {
-        for (let row = -1; row < gridCanvas.height / dy + 2; row += 1) {
-          const cx = col * dx;
-          const cy = row * dy + (col % 2 ? dy / 2 : 0);
-          drawHex(g, cx, cy, side);
+    (() => {
+      const TILE_SIZE = 32;
+      const MAP_TILES_W = 30;
+      const MAP_TILES_H = 20;
+      const MAP_WIDTH = MAP_TILES_W * TILE_SIZE;
+      const MAP_HEIGHT = MAP_TILES_H * TILE_SIZE;
+
+      const WORLD_WIDTH = 1280;
+      const WORLD_HEIGHT = 880;
+      const MAP_OFFSET_X = Math.floor((WORLD_WIDTH - MAP_WIDTH) / 2);
+      const MAP_OFFSET_Y = Math.floor((WORLD_HEIGHT - MAP_HEIGHT) / 2);
+
+      const COLORS = {
+        bg: 0x050d1a,
+        ground: 0x0a0f1a,
+        road: 0x111827,
+        border: 0x1e3a5f,
+        xiaobai: 0xff6b35,
+        xiaobaiAlert: 0xff9f43,
+        xiaobaiDanger: 0xff4d4d,
+        packet: 0x00d4ff,
+        threat: 0x7c3aed,
+        safe: 0x00ff88,
+        danger: 0xff4444,
+        temple: 0xf59e0b
+      };
+
+      const MOOD_ICON = {
+        好奇: "🙂",
+        放松: "😌",
+        警惕: "😐",
+        紧张: "😰",
+        危险: "😨",
+        恐慌: "😱",
+        自豪: "😎"
+      };
+
+      const MOOD_HP = {
+        好奇: 100,
+        放松: 100,
+        警惕: 80,
+        紧张: 60,
+        危险: 30,
+        恐慌: 15,
+        自豪: 100
+      };
+
+      const ALERT_MOODS = new Set(["警惕", "紧张"]);
+      const DANGER_MOODS = new Set(["危险", "恐慌"]);
+
+      const LOCATION_MAP = {
+        数字市集: "market",
+        网购广场: "market",
+        防火墙要塞: "shelter",
+        安全岛: "shelter",
+        安全屋: "shelter",
+        社交网络: "social",
+        社交广场: "social",
+        漏洞沼泽: "cafe",
+        咖啡厅: "cafe",
+        数据中心: "office",
+        职场: "office",
+        暗网交易所: "bank",
+        密码丛林: "temple",
+        神庙: "temple",
+        神庙区: "temple",
+        小白的家: "home",
+        家: "home"
+      };
+
+      const BUILDING_DEFS = {
+        home: {
+          id: "home",
+          icon: "🏠",
+          name: "小白的家",
+          theme: "home",
+          color: 0xfb923c,
+          border: 0xf59e0b,
+          tx: 2,
+          ty: 2,
+          tw: 4,
+          th: 3,
+          windows: 3
+        },
+        cafe: {
+          id: "cafe",
+          icon: "☕",
+          name: "咖啡厅",
+          theme: "cafe",
+          color: 0x8b5e3c,
+          border: 0xb58a65,
+          tx: 3,
+          ty: 9,
+          tw: 4,
+          th: 3,
+          windows: 4
+        },
+        office: {
+          id: "office",
+          icon: "🏢",
+          name: "职场",
+          theme: "office",
+          color: 0x64748b,
+          border: 0x93a2bb,
+          tx: 21,
+          ty: 2,
+          tw: 5,
+          th: 4,
+          windows: 6
+        },
+        market: {
+          id: "market",
+          icon: "🛒",
+          name: "网购广场",
+          theme: "market",
+          color: 0x2e9f67,
+          border: 0x5ecf8f,
+          tx: 12,
+          ty: 8,
+          tw: 6,
+          th: 4,
+          windows: 5
+        },
+        social: {
+          id: "social",
+          icon: "📱",
+          name: "社交广场",
+          theme: "social",
+          color: 0x7c3aed,
+          border: 0xa78bfa,
+          tx: 22,
+          ty: 10,
+          tw: 5,
+          th: 3,
+          windows: 4
+        },
+        bank: {
+          id: "bank",
+          icon: "🏦",
+          name: "网络银行",
+          theme: "bank",
+          color: 0x9a7a1f,
+          border: 0xeab308,
+          tx: 21,
+          ty: 15,
+          tw: 5,
+          th: 4,
+          windows: 4
+        },
+        temple: {
+          id: "temple",
+          icon: "🏛",
+          name: "神庙区",
+          theme: "temple",
+          color: 0xf8fafc,
+          border: 0xf59e0b,
+          tx: 12,
+          ty: 2,
+          tw: 6,
+          th: 4,
+          windows: 5
+        },
+        shelter: {
+          id: "shelter",
+          icon: "🛡",
+          name: "安全屋",
+          theme: "shelter",
+          color: 0x0f766e,
+          border: 0x00ff88,
+          tx: 12,
+          ty: 14,
+          tw: 6,
+          th: 4,
+          windows: 4
         }
-      }
-    }
-    function drawHex(g, cx, cy, side) {
-      g.beginPath();
-      for (let i = 0; i < 6; i += 1) {
-        const a = (Math.PI / 3) * i + Math.PI / 6;
-        const x = cx + side * Math.cos(a);
-        const y = cy + side * Math.sin(a);
-        if (i === 0) g.moveTo(x, y);
-        else g.lineTo(x, y);
-      }
-      g.closePath();
-      g.stroke();
-    }
-    function startMoveTo(locationName, now) {
-      const target = getNodePosition(locationName);
-      if (Math.hypot(target.x - motion.currentX, target.y - motion.currentY) < 1) {
-        motion.currentX = target.x;
-        motion.currentY = target.y;
-        return;
-      }
-      motion.startX = motion.currentX;
-      motion.startY = motion.currentY;
-      motion.targetX = target.x;
-      motion.targetY = target.y;
-      motion.startTime = now;
-      motion.active = true;
-    }
-    function updateMotion(now) {
-      if (motion.active) {
-        const t = Math.min(1, (now - motion.startTime) / 2000);
-        motion.currentX = motion.startX + (motion.targetX - motion.startX) * t;
-        motion.currentY = motion.startY + (motion.targetY - motion.startY) * t;
-        if (t >= 1) {
-          motion.active = false;
-          motion.bounceUntil = now + 1000;
-        }
-      }
-    }
-    function addEvent(text) {
-      if (!text) return;
-      const now = new Date();
-      const hh = String(now.getHours()).padStart(2, '0');
-      const mm = String(now.getMinutes()).padStart(2, '0');
-      let type = 'threat';
-      if (text.includes('✓')) type = 'safe';
-      else if (text.includes('→')) type = 'move';
-      events.unshift({ id: `${Date.now()}-${Math.random()}`, time: `${hh}:${mm}`, text, type });
-      events = events.slice(0, 10);
-      renderEvents();
-    }
-    function renderEvents() {
-      eventsList.innerHTML = '';
-      events.forEach((item) => {
-        const li = document.createElement('li');
-        li.className = 'event-item';
-        const marker = document.createElement('span');
-        marker.className = `event-type-${item.type}`;
-        marker.textContent = item.type === 'safe' ? '✓' : item.type === 'move' ? '→' : '▶';
-        const text = document.createElement('span');
-        text.className = 'event-text';
-        text.textContent = `${item.time} ${item.text.replace(/^[✓▶→]\s*/, '')}`;
-        li.appendChild(marker);
-        li.appendChild(text);
-        eventsList.appendChild(li);
-      });
-    }
-    function setMode(next) {
-      mode = next;
-      modeBadge.textContent = next.toUpperCase();
-      modeBadge.classList.toggle('live', next === 'live');
-    }
-    function triggerAlert(message) {
-      alertBanner.textContent = `⚠ ${message || '检测到安全威胁'}`;
-      alertBanner.classList.add('show');
-      if (bannerTimer) clearTimeout(bannerTimer);
-      bannerTimer = setTimeout(() => alertBanner.classList.remove('show'), 5000);
-      const base = performance.now();
-      flashTimes = [base, base + 300, base + 600];
-    }
-    function isDangerState(nextState) {
-      return DANGER_MOODS.has(nextState.mood) || (mode === 'demo' && DANGER_LOCATIONS.has(nextState.location));
-    }
-    function applyState(next, eventText = null) {
-      const prevLocation = state.location;
-      Object.assign(state, next);
-      const now = performance.now();
-      if (state.location !== prevLocation) {
-        startMoveTo(state.location, now);
-      }
-      const moodEmoji = MOOD_ICON[state.mood] || '🫧';
-      nameLevel.textContent = `${state.xiaobai_name || '小白'} · Lv.${state.level || 3}`;
-      resolvedCount.textContent = String(state.resolved_threats ?? 0);
-      locationText.textContent = state.location || '数字市集';
-      moodText.textContent = `${moodEmoji} ${state.mood || '好奇'}`;
-      if (state.threat) {
-        threatText.classList.remove('safe');
-        threatText.textContent = state.threat;
-      } else {
-        threatText.classList.add('safe');
-        threatText.textContent = '暂无直接威胁，环境稳定';
-      }
-      const nowDanger = isDangerState(state);
-      if (nowDanger && !dangerActive) {
-        triggerAlert(state.threat || '检测到安全威胁');
-      }
-      dangerActive = nowDanger;
-      if (eventText) addEvent(eventText);
-    }
-    function drawEdges(now) {
-      ctx.save();
-      ctx.setLineDash([4, 8]);
-      ctx.strokeStyle = 'rgba(0,212,255,0.12)';
-      ctx.lineWidth = 1;
-      for (const [a, b] of EDGES) {
-        const p1 = getNodePosition(a);
-        const p2 = getNodePosition(b);
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
-      }
-      ctx.restore();
-      for (const p of particles) {
-        const [a, b] = p.edge;
-        const p1 = getNodePosition(a);
-        const p2 = getNodePosition(b);
-        const progress = ((now / 1000) / 4 + p.offset) % 1;
-        const x = p1.x + (p2.x - p1.x) * progress;
-        const y = p1.y + (p2.y - p1.y) * progress;
-        ctx.beginPath();
-        ctx.fillStyle = 'rgba(0,212,255,0.7)';
-        ctx.arc(x, y, 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    function drawNodes(now) {
-      for (const node of NODES) {
-        const pos = getNodePosition(node.name);
-        const isCurrent = node.name === state.location;
-        const pulse = 0.4 + 0.6 * ((Math.sin((now / 1000) * Math.PI) + 1) / 2);
-        const glowRadius = isCurrent ? 40 + pulse * 16 : 29;
-        const grad = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, glowRadius);
-        grad.addColorStop(0, `${node.color}70`);
-        grad.addColorStop(1, `${node.color}00`);
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, glowRadius, 0, Math.PI * 2);
-        ctx.fill();
-        const radius = isCurrent ? 20 : 16;
-        ctx.beginPath();
-        ctx.fillStyle = `${node.color}26`;
-        ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.strokeStyle = node.color;
-        ctx.lineWidth = 1.5;
-        ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.font = "18px 'Microsoft YaHei', 'PingFang SC', sans-serif";
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(node.icon, pos.x, pos.y + 0.5);
-        ctx.font = `${isCurrent ? 12 : 11}px 'Microsoft YaHei', 'PingFang SC', sans-serif`;
-        ctx.fillStyle = isCurrent ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.6)';
-        ctx.fillText(node.name, pos.x, pos.y + 24);
-      }
-    }
-    function drawXiaobai(now) {
-      let y = motion.currentY;
-      if (now < motion.bounceUntil) {
-        const t = (motion.bounceUntil - now) / 1000;
-        y += Math.sin((1 - t) * Math.PI * 4) * 4;
-      }
-      ctx.beginPath();
-      ctx.fillStyle = 'rgba(255,255,255,0.15)';
-      ctx.arc(motion.currentX, y, 22, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.font = "28px 'Microsoft YaHei', 'PingFang SC', sans-serif";
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText('🦞', motion.currentX, y + 1);
-    }
-    function drawAlertOverlay(now) {
-      flashTimes = flashTimes.filter((t) => now <= t + 180);
-      if (!flashTimes.length) return;
-      let alpha = 0;
-      flashTimes.forEach((t) => {
-        if (now >= t && now <= t + 180) {
-          const ratio = (now - t) / 180;
-          alpha = Math.max(alpha, Math.sin(ratio * Math.PI) * 0.08);
-        }
-      });
-      if (alpha <= 0) return;
-      ctx.fillStyle = `rgba(255,0,0,${alpha.toFixed(3)})`;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-    function render(now) {
-      updateMotion(now);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(gridCanvas, 0, 0, canvas.width, canvas.height);
-      drawEdges(now);
-      drawNodes(now);
-      drawXiaobai(now);
-      drawAlertOverlay(now);
-      requestAnimationFrame(render);
-    }
-    function startDemo() {
-      if (demoTimer) clearInterval(demoTimer);
-      demoStepIndex = -1;
-      demoStartTs = Date.now();
-      demoTimer = setInterval(() => {
-        if (mode !== 'demo') return;
-        const elapsed = ((Date.now() - demoStartTs) / 1000) % 60;
-        let index = 0;
-        for (let i = 0; i < DEMO_SCRIPT.length; i += 1) {
-          if (elapsed >= DEMO_SCRIPT[i].t) index = i;
-        }
-        if (index < demoStepIndex) demoStepIndex = -1;
-        if (index === demoStepIndex) return;
-        demoStepIndex = index;
-        const step = DEMO_SCRIPT[index];
-        if (step.event.startsWith('✓')) demoResolved += 1;
-        applyState(
-          {
-            location: step.location,
-            mood: step.mood,
-            threat: step.threat,
-            resolved_threats: demoResolved,
-            last_event: step.event,
-            last_updated: new Date().toISOString()
-          },
-          step.event
+      };
+
+      const BUILDING_LIST = Object.values(BUILDING_DEFS);
+
+      const ROAD_LINKS = [
+        ["home", "cafe"],
+        ["home", "temple"],
+        ["temple", "office"],
+        ["office", "social"],
+        ["social", "bank"],
+        ["market", "social"],
+        ["market", "cafe"],
+        ["market", "shelter"],
+        ["shelter", "bank"],
+        ["market", "temple"],
+        ["home", "market"]
+      ];
+
+      const DEMO_SCRIPT = [
+        { t: 0, location: "小白的家", mood: "好奇", threat: "发现陌生设备连入家庭网络", event: "▶ 家庭网络出现不明设备" },
+        { t: 8, location: "咖啡厅", mood: "警惕", threat: "检测到 Evil Twin WiFi", event: "→ 移动至咖啡厅" },
+        { t: 16, location: "咖啡厅", mood: "紧张", threat: "中间人攻击流量异常", event: "▶ 发现中间人攻击" },
+        { t: 24, location: "安全屋", mood: "放松", threat: null, event: "✓ 威胁成功阻断" },
+        { t: 32, location: "职场", mood: "警惕", threat: "收到伪造CEO邮件", event: "▶ 钓鱼邮件出现" },
+        { t: 40, location: "网购广场", mood: "危险", threat: "发现假冒支付页面", event: "▶ 支付页面可疑" },
+        { t: 48, location: "神庙区", mood: "紧张", threat: "进入神庙挑战模式", event: "→ 进入神庙备战" },
+        { t: 56, location: "小白的家", mood: "自豪", threat: null, event: "✓ 神庙挑战完成 +20XP" }
+      ];
+
+      const DEFAULT_STATE = {
+        xiaobai_name: "小白",
+        level: 3,
+        location: "小白的家",
+        mood: "好奇",
+        threat: "发现陌生设备连入家庭网络",
+        resolved_threats: 35,
+        last_event: "▶ 家庭网络出现不明设备",
+        last_updated: new Date().toISOString()
+      };
+
+      const dom = {
+        modeBadge: document.getElementById("modeBadge"),
+        nameLevel: document.getElementById("nameLevel"),
+        resolvedCount: document.getElementById("resolvedCount"),
+        locationIcon: document.getElementById("locationIcon"),
+        locationText: document.getElementById("locationText"),
+        moodText: document.getElementById("moodText"),
+        threatText: document.getElementById("threatText"),
+        hpBar: document.getElementById("hpBar"),
+        xpBar: document.getElementById("xpBar"),
+        eventsList: document.getElementById("eventsList"),
+        updatedText: document.getElementById("updatedText")
+      };
+
+      let appMode = "DEMO";
+      let worldState = { ...DEFAULT_STATE };
+      let eventsFeed = [];
+      let worldSceneRef = null;
+      let demoTimer = null;
+      let demoStartedAt = Date.now();
+      let demoStepIndex = -1;
+      let demoResolved = DEFAULT_STATE.resolved_threats;
+      let demoLevel = DEFAULT_STATE.level;
+      let liveSignature = "";
+      let liveMisses = 0;
+
+      function shiftColor(hexColor, delta) {
+        const rgb = Phaser.Display.Color.IntegerToRGB(hexColor);
+        return Phaser.Display.Color.GetColor(
+          Phaser.Math.Clamp(rgb.r + delta, 0, 255),
+          Phaser.Math.Clamp(rgb.g + delta, 0, 255),
+          Phaser.Math.Clamp(rgb.b + delta, 0, 255)
         );
-      }, 240);
-    }
-    async function fetchWorldState() {
-      try {
-        const response = await fetch(`world-state.json?ts=${Date.now()}`, { cache: 'no-store' });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return await response.json();
-      } catch {
-        return null;
       }
-    }
-    async function pollWorldState() {
-      const data = await fetchWorldState();
-      if (data) {
-        if (mode !== 'live') {
-          setMode('live');
-          addEvent('✓ world-state.json 已接入，进入真实状态模式');
+
+      function getSceneIdByLocation(location) {
+        if (!location) return "home";
+        return LOCATION_MAP[location] || "home";
+      }
+
+      function getSceneMeta(sceneId) {
+        return BUILDING_DEFS[sceneId] || BUILDING_DEFS.home;
+      }
+
+      function moodToHP(mood) {
+        return MOOD_HP[mood] || 70;
+      }
+
+      function resolvedToXP(resolvedThreats) {
+        const value = Number.isFinite(Number(resolvedThreats)) ? Number(resolvedThreats) : 0;
+        return ((value * 10) % 100 + 100) % 100;
+      }
+
+      function normalizeState(input) {
+        const normalized = { ...worldState };
+
+        if (input.xiaobai_name) normalized.xiaobai_name = String(input.xiaobai_name);
+        if (Number.isFinite(Number(input.level))) normalized.level = Number(input.level);
+        if (input.location) normalized.location = String(input.location);
+        if (input.mood) normalized.mood = String(input.mood);
+        if (Object.prototype.hasOwnProperty.call(input, "threat")) {
+          normalized.threat = input.threat ? String(input.threat) : null;
         }
-        const signature = `${data.last_updated || ''}|${data.last_event || ''}|${data.location || ''}|${data.mood || ''}`;
-        const shouldEmitEvent = signature !== lastLiveSignature && data.last_event;
-        lastLiveSignature = signature;
+        if (Number.isFinite(Number(input.resolved_threats))) {
+          normalized.resolved_threats = Number(input.resolved_threats);
+        }
+        if (input.last_event) normalized.last_event = String(input.last_event);
+        normalized.last_updated = input.last_updated || new Date().toISOString();
+
+        return normalized;
+      }
+
+      function setMode(mode) {
+        appMode = mode;
+        dom.modeBadge.textContent = mode;
+        dom.modeBadge.classList.toggle("live", mode === "LIVE");
+      }
+
+      function formatTime(value) {
+        try {
+          const date = new Date(value);
+          if (Number.isNaN(date.getTime())) return "--";
+          return date.toLocaleTimeString("zh-CN", { hour12: false });
+        } catch {
+          return "--";
+        }
+      }
+
+      function classifyEvent(text) {
+        if (!text) return "info";
+        if (text.includes("✓")) return "safe";
+        if (text.includes("→")) return "move";
+        if (text.includes("⚠") || text.includes("危险") || text.includes("攻击") || text.includes("可疑")) return "danger";
+        return "info";
+      }
+
+      function addEvent(eventText) {
+        if (!eventText) return;
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const mm = String(now.getMinutes()).padStart(2, "0");
+        eventsFeed.unshift({
+          id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          time: `${hh}:${mm}`,
+          text: eventText,
+          type: classifyEvent(eventText)
+        });
+        eventsFeed = eventsFeed.slice(0, 16);
+        renderEvents();
+      }
+
+      function renderEvents() {
+        dom.eventsList.innerHTML = "";
+        for (const item of eventsFeed) {
+          const li = document.createElement("li");
+          li.className = `event-item ${item.type}`;
+
+          const symbol = document.createElement("span");
+          symbol.className = "event-symbol";
+          symbol.textContent = item.type === "safe" ? "✓" : item.type === "move" ? "→" : item.type === "danger" ? "⚠" : "▶";
+
+          const text = document.createElement("span");
+          const clean = item.text.replace(/^[✓→▶⚠]\s*/, "");
+          text.textContent = `${item.time} ${clean}`;
+
+          li.appendChild(symbol);
+          li.appendChild(text);
+          dom.eventsList.appendChild(li);
+        }
+      }
+
+      function updateHud(state) {
+        const sceneId = getSceneIdByLocation(state.location);
+        const sceneMeta = getSceneMeta(sceneId);
+        const moodEmoji = MOOD_ICON[state.mood] || "🫧";
+        const hp = moodToHP(state.mood);
+        const xp = resolvedToXP(state.resolved_threats);
+
+        dom.nameLevel.textContent = `${state.xiaobai_name || "小白"} · Lv.${state.level || 1}`;
+        dom.resolvedCount.textContent = String(state.resolved_threats || 0);
+        dom.locationIcon.textContent = sceneMeta.icon;
+        dom.locationText.textContent = state.location || sceneMeta.name;
+        dom.moodText.textContent = `${moodEmoji} ${state.mood || "好奇"}`;
+
+        if (state.threat) {
+          dom.threatText.classList.remove("safe");
+          dom.threatText.textContent = `⚡ ${state.threat}`;
+        } else {
+          dom.threatText.classList.add("safe");
+          dom.threatText.textContent = "⚡ 暂无直接威胁";
+        }
+
+        dom.hpBar.style.width = `${Phaser.Math.Clamp(hp, 0, 100)}%`;
+        dom.xpBar.style.width = `${Phaser.Math.Clamp(xp, 0, 100)}%`;
+        dom.updatedText.textContent = `最后更新: ${formatTime(state.last_updated)} (${appMode})`;
+      }
+
+      function applyState(input, options = {}) {
+        const next = normalizeState(input);
+        const previous = worldState;
+        worldState = next;
+
+        updateHud(worldState);
+
+        const shouldEmitEvent = options.forceEvent || (options.eventText && options.eventText !== previous.last_event);
+        if (shouldEmitEvent) {
+          addEvent(options.eventText || worldState.last_event);
+        }
+
+        if (worldSceneRef) {
+          worldSceneRef.applyWorldState(worldState, {
+            eventText: shouldEmitEvent ? options.eventText || worldState.last_event : null,
+            skipMovement: Boolean(options.skipMovement)
+          });
+        }
+      }
+
+      function startDemoLoop() {
+        if (demoTimer) return;
+
+        demoStepIndex = -1;
+        demoResolved = DEFAULT_STATE.resolved_threats;
+        demoLevel = DEFAULT_STATE.level;
+        demoStartedAt = Date.now();
+
+        demoTimer = window.setInterval(() => {
+          if (appMode !== "DEMO") return;
+
+          const elapsed = ((Date.now() - demoStartedAt) / 1000) % 60;
+          let index = 0;
+          for (let i = 0; i < DEMO_SCRIPT.length; i += 1) {
+            if (elapsed >= DEMO_SCRIPT[i].t) index = i;
+          }
+
+          if (index < demoStepIndex) {
+            demoStepIndex = -1;
+            demoResolved = DEFAULT_STATE.resolved_threats;
+            demoLevel = DEFAULT_STATE.level;
+          }
+
+          if (index === demoStepIndex) return;
+          demoStepIndex = index;
+
+          const step = DEMO_SCRIPT[index];
+          if (step.event.startsWith("✓")) {
+            demoResolved += step.event.includes("+20XP") ? 2 : 1;
+            if (step.event.includes("+20XP")) {
+              demoLevel += 1;
+            }
+          }
+
+          applyState(
+            {
+              xiaobai_name: "小白",
+              level: demoLevel,
+              location: step.location,
+              mood: step.mood,
+              threat: step.threat,
+              resolved_threats: demoResolved,
+              last_event: step.event,
+              last_updated: new Date().toISOString()
+            },
+            {
+              eventText: step.event,
+              forceEvent: true
+            }
+          );
+        }, 250);
+      }
+
+      async function fetchWorldState() {
+        try {
+          const res = await fetch(`world-state.json?t=${Date.now()}`, { cache: "no-store" });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return await res.json();
+        } catch {
+          return null;
+        }
+      }
+
+      async function pollWorldState() {
+        const data = await fetchWorldState();
+
+        if (!data) {
+          liveMisses += 1;
+          if (appMode === "LIVE" && liveMisses >= 3) {
+            setMode("DEMO");
+            addEvent("→ world-state.json 暂不可用，切回 DEMO 模式");
+          }
+          return;
+        }
+
+        liveMisses = 0;
+        if (appMode !== "LIVE") {
+          setMode("LIVE");
+          addEvent("✓ world-state.json 已接入，进入 LIVE 模式");
+        }
+
+        const signature = [
+          data.last_updated || "",
+          data.location || "",
+          data.mood || "",
+          data.threat || "",
+          data.last_event || "",
+          data.resolved_threats || ""
+        ].join("|");
+
+        const changed = signature !== liveSignature;
+        liveSignature = signature;
+
         applyState(
           {
-            xiaobai_name: data.xiaobai_name || state.xiaobai_name,
-            level: Number.isFinite(Number(data.level)) ? Number(data.level) : state.level,
-            location: data.location || state.location,
-            mood: data.mood || state.mood,
-            threat: data.threat ?? null,
-            resolved_threats: Number.isFinite(Number(data.resolved_threats))
-              ? Number(data.resolved_threats)
-              : state.resolved_threats,
-            last_event: data.last_event || state.last_event,
+            xiaobai_name: data.xiaobai_name || worldState.xiaobai_name,
+            level: Number.isFinite(Number(data.level)) ? Number(data.level) : worldState.level,
+            location: data.location || worldState.location,
+            mood: data.mood || worldState.mood,
+            threat: Object.prototype.hasOwnProperty.call(data, "threat") ? data.threat : worldState.threat,
+            resolved_threats: Number.isFinite(Number(data.resolved_threats)) ? Number(data.resolved_threats) : worldState.resolved_threats,
+            last_event: data.last_event || worldState.last_event,
             last_updated: data.last_updated || new Date().toISOString()
           },
-          shouldEmitEvent ? data.last_event : null
+          {
+            eventText: changed ? data.last_event || worldState.last_event : null,
+            forceEvent: false
+          }
         );
-      } else if (mode !== 'demo') {
-        setMode('demo');
-        addEvent('→ world-state.json 不可用，切换到 Demo 模式');
-        startDemo();
       }
-    }
-    function init() {
-      resizeCanvas();
-      setMode('demo');
-      window.addEventListener('resize', resizeCanvas);
-      const initStep = DEMO_SCRIPT[0];
-      applyState(
-        {
-          location: initStep.location,
-          mood: initStep.mood,
-          threat: initStep.threat,
-          resolved_threats: 12,
-          last_event: initStep.event,
-          last_updated: new Date().toISOString()
+
+      class WorldScene extends Phaser.Scene {
+        constructor() {
+          super("WorldScene");
+          this.buildings = {};
+          this.roadPaths = [];
+          this.dataPackets = [];
+          this.templeOrbiters = [];
+          this.starField = [];
+          this.currentBuildingId = null;
+          this.currentThreat = null;
+          this.xiaobaiRoot = null;
+          this.xiaobaiBody = null;
+          this.xiaobaiBodyContainer = null;
+          this.walkTween = null;
+          this.breathTween = null;
+          this.stressTween = null;
+          this.moodFlashTween = null;
+          this.moveTween = null;
+          this.npcOrbitTween = null;
+          this.threatNpc = null;
+          this.threatNpcOrbit = { angle: 0, radius: 36 };
+          this.speechBubble = null;
+          this.warningTween = null;
+          this.packetPhase = 0;
+          this.isDangerMood = false;
+          this.facing = 1;
+        }
+
+        preload() {}
+
+        create() {
+          this.buildPixelTextures();
+          this.buildStarField();
+          this.buildTilemap();
+          this.buildRoads();
+          this.buildBuildings();
+          this.buildTempleAura();
+          this.buildXiaobai();
+          this.buildDataPackets();
+          this.buildDangerEmitter();
+          this.setupCamera();
+
+          worldSceneRef = this;
+          this.applyWorldState(worldState, { eventText: worldState.last_event, skipMovement: true });
+        }
+
+        update(time, delta) {
+          this.updateRoadPackets(delta);
+          this.updateStars(time);
+          this.updateTempleOrbiters(delta);
+          this.updateThreatNpcPosition();
+          this.updateSpeechBubblePosition();
+        }
+
+        buildPixelTextures() {
+          const pixel = this.add.graphics();
+          pixel.fillStyle(COLORS.packet, 1);
+          pixel.fillRect(0, 0, 4, 4);
+          pixel.generateTexture("pixel-cyan", 4, 4);
+          pixel.clear();
+          pixel.fillStyle(COLORS.danger, 1);
+          pixel.fillRect(0, 0, 4, 4);
+          pixel.generateTexture("pixel-red", 4, 4);
+          pixel.clear();
+          pixel.fillStyle(COLORS.temple, 1);
+          pixel.fillRect(0, 0, 4, 4);
+          pixel.generateTexture("pixel-gold", 4, 4);
+          pixel.destroy();
+        }
+
+        buildStarField() {
+          const mapRect = new Phaser.Geom.Rectangle(MAP_OFFSET_X, MAP_OFFSET_Y, MAP_WIDTH, MAP_HEIGHT);
+          for (let i = 0; i < 150; i += 1) {
+            let x;
+            let y;
+            do {
+              x = Phaser.Math.Between(20, WORLD_WIDTH - 20);
+              y = Phaser.Math.Between(20, WORLD_HEIGHT - 20);
+            } while (Phaser.Geom.Rectangle.Contains(mapRect, x, y));
+
+            const star = this.add.circle(x, y, Phaser.Math.Between(1, 2), 0xdbeafe, Phaser.Math.FloatBetween(0.25, 0.65));
+            this.starField.push({
+              dot: star,
+              speed: Phaser.Math.FloatBetween(0.8, 1.6),
+              offset: Phaser.Math.FloatBetween(0, Math.PI * 2)
+            });
+          }
+        }
+
+        updateStars(time) {
+          const t = time / 1000;
+          for (const star of this.starField) {
+            const alpha = 0.2 + ((Math.sin(t * star.speed + star.offset) + 1) * 0.5) * 0.45;
+            star.dot.setAlpha(alpha);
+          }
+        }
+
+        buildTilemap() {
+          const g = this.add.graphics();
+          g.fillStyle(COLORS.bg, 1);
+          g.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+
+          for (let ty = 0; ty < MAP_TILES_H; ty += 1) {
+            for (let tx = 0; tx < MAP_TILES_W; tx += 1) {
+              const px = MAP_OFFSET_X + tx * TILE_SIZE;
+              const py = MAP_OFFSET_Y + ty * TILE_SIZE;
+              const jitter = Phaser.Math.Between(-4, 6);
+              g.fillStyle(shiftColor(COLORS.ground, jitter), 1);
+              g.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+
+              if ((tx + ty) % 3 === 0) {
+                g.fillStyle(0x040a14, 0.3);
+                g.fillRect(px + 2, py + 2, 4, 4);
+              }
+
+              if ((tx * ty) % 11 === 0) {
+                g.fillStyle(0x0f1f33, 0.4);
+                g.fillRect(px + 22, py + 22, 3, 3);
+              }
+            }
+          }
+
+          g.lineStyle(1, 0x0d2037, 0.45);
+          for (let tx = 0; tx <= MAP_TILES_W; tx += 1) {
+            const x = MAP_OFFSET_X + tx * TILE_SIZE;
+            g.beginPath();
+            g.moveTo(x, MAP_OFFSET_Y);
+            g.lineTo(x, MAP_OFFSET_Y + MAP_HEIGHT);
+            g.strokePath();
+          }
+          for (let ty = 0; ty <= MAP_TILES_H; ty += 1) {
+            const y = MAP_OFFSET_Y + ty * TILE_SIZE;
+            g.beginPath();
+            g.moveTo(MAP_OFFSET_X, y);
+            g.lineTo(MAP_OFFSET_X + MAP_WIDTH, y);
+            g.strokePath();
+          }
+        }
+
+        getBuildingRect(def) {
+          const x = MAP_OFFSET_X + def.tx * TILE_SIZE;
+          const y = MAP_OFFSET_Y + def.ty * TILE_SIZE;
+          const w = def.tw * TILE_SIZE;
+          const h = def.th * TILE_SIZE;
+          return { x, y, w, h };
+        }
+
+        getBuildingEntry(def) {
+          const rect = this.getBuildingRect(def);
+          return {
+            x: rect.x + rect.w / 2,
+            y: rect.y + rect.h + 18
+          };
+        }
+
+        buildRoads() {
+          const roadGraphics = this.add.graphics();
+
+          for (const [fromId, toId] of ROAD_LINKS) {
+            const a = this.getBuildingEntry(BUILDING_DEFS[fromId]);
+            const b = this.getBuildingEntry(BUILDING_DEFS[toId]);
+            const midY = (a.y + b.y) / 2;
+            const path = [
+              { x: a.x, y: a.y },
+              { x: a.x, y: midY },
+              { x: b.x, y: midY },
+              { x: b.x, y: b.y }
+            ];
+
+            this.drawRoadPath(roadGraphics, path);
+            this.roadPaths.push(this.prepareRoadPath(path));
+          }
+        }
+
+        drawRoadPath(g, points) {
+          for (let i = 1; i < points.length; i += 1) {
+            const p1 = points[i - 1];
+            const p2 = points[i];
+
+            if (p1.x === p2.x) {
+              const y = Math.min(p1.y, p2.y);
+              const h = Math.abs(p2.y - p1.y);
+              g.fillStyle(COLORS.road, 1);
+              g.fillRect(p1.x - 8, y, 16, h);
+              g.fillStyle(0x1f2937, 0.55);
+              g.fillRect(p1.x - 2, y, 4, h);
+            } else {
+              const x = Math.min(p1.x, p2.x);
+              const w = Math.abs(p2.x - p1.x);
+              g.fillStyle(COLORS.road, 1);
+              g.fillRect(x, p1.y - 8, w, 16);
+              g.fillStyle(0x1f2937, 0.55);
+              g.fillRect(x, p1.y - 2, w, 4);
+            }
+          }
+        }
+
+        prepareRoadPath(points) {
+          const segments = [];
+          let total = 0;
+
+          for (let i = 1; i < points.length; i += 1) {
+            const from = points[i - 1];
+            const to = points[i];
+            const length = Phaser.Math.Distance.Between(from.x, from.y, to.x, to.y);
+            total += length;
+            segments.push({ from, to, length, acc: total });
+          }
+
+          return { points, segments, totalLength: total || 1 };
+        }
+
+        getPointOnRoad(path, t) {
+          const target = Phaser.Math.Clamp(t, 0, 1) * path.totalLength;
+          for (const segment of path.segments) {
+            const startAcc = segment.acc - segment.length;
+            if (target <= segment.acc) {
+              const local = (target - startAcc) / (segment.length || 1);
+              return {
+                x: Phaser.Math.Interpolation.Linear([segment.from.x, segment.to.x], local),
+                y: Phaser.Math.Interpolation.Linear([segment.from.y, segment.to.y], local)
+              };
+            }
+          }
+          const last = path.points[path.points.length - 1];
+          return { x: last.x, y: last.y };
+        }
+
+        buildDataPackets() {
+          for (const path of this.roadPaths) {
+            const count = Phaser.Math.Between(2, 3);
+            for (let i = 0; i < count; i += 1) {
+              const dot = this.add.image(0, 0, "pixel-cyan").setAlpha(0.9);
+              dot.setScale(1 + Math.random() * 0.4);
+              this.dataPackets.push({
+                sprite: dot,
+                path,
+                speed: Phaser.Math.FloatBetween(0.06, 0.14),
+                offset: Math.random()
+              });
+            }
+          }
+        }
+
+        updateRoadPackets(delta) {
+          this.packetPhase += delta / 1000;
+          for (const packet of this.dataPackets) {
+            const t = (this.packetPhase * packet.speed + packet.offset) % 1;
+            const point = this.getPointOnRoad(packet.path, t);
+            packet.sprite.setPosition(point.x, point.y);
+          }
+        }
+
+        buildBuildings() {
+          for (const def of BUILDING_LIST) {
+            const rect = this.getBuildingRect(def);
+            const base = this.add.graphics();
+
+            base.fillStyle(0x000000, 0.35);
+            base.fillRect(rect.x + 5, rect.y + 6, rect.w, rect.h);
+            base.fillStyle(def.color, 1);
+            base.fillRect(rect.x, rect.y, rect.w, rect.h);
+            base.lineStyle(2, def.border, 0.95);
+            base.strokeRect(rect.x, rect.y, rect.w, rect.h);
+
+            const windows = this.drawBuildingDecor(base, def, rect);
+
+            const label = this.add.text(rect.x + rect.w / 2, rect.y + rect.h + 8, `${def.icon} ${def.name}`, {
+              fontFamily: "monospace",
+              fontSize: "11px",
+              color: "#f7fbff",
+              align: "center"
+            });
+            label.setOrigin(0.5, 0);
+            label.setAlpha(0.9);
+
+            const glow = this.add.graphics();
+            glow.fillStyle(def.border, 0.18);
+            glow.fillRoundedRect(rect.x - 6, rect.y - 6, rect.w + 12, rect.h + 12, 8);
+            glow.lineStyle(2, def.border, 0.9);
+            glow.strokeRoundedRect(rect.x - 3, rect.y - 3, rect.w + 6, rect.h + 6, 8);
+            glow.setAlpha(0);
+
+            const warning = this.add.graphics();
+            warning.fillStyle(COLORS.danger, 0.18);
+            warning.fillRoundedRect(rect.x - 7, rect.y - 7, rect.w + 14, rect.h + 14, 9);
+            warning.lineStyle(2, COLORS.danger, 0.95);
+            warning.strokeRoundedRect(rect.x - 4, rect.y - 4, rect.w + 8, rect.h + 8, 8);
+            warning.setAlpha(0);
+
+            this.buildings[def.id] = {
+              def,
+              rect,
+              base,
+              label,
+              glow,
+              warning,
+              windows,
+              glowTween: null
+            };
+
+            for (const windowRect of windows) {
+              this.scheduleWindowBlink(windowRect);
+            }
+          }
+        }
+
+        drawBuildingDecor(graphics, def, rect) {
+          const windows = [];
+          const step = Math.max(14, Math.floor((rect.w - 16) / Math.max(1, def.windows)));
+
+          for (let i = 0; i < def.windows; i += 1) {
+            const wx = rect.x + 8 + i * step;
+            const wy = rect.y + Math.max(8, Math.floor(rect.h * 0.35));
+            const windowRect = this.add.rectangle(wx, wy, 8, 8, 0xffe8a3, 0.2);
+            windowRect.setOrigin(0, 0);
+            windows.push(windowRect);
+          }
+
+          if (def.theme === "home") {
+            graphics.fillStyle(0x6b3a17, 1);
+            graphics.fillTriangle(rect.x + 2, rect.y, rect.x + rect.w / 2, rect.y - 14, rect.x + rect.w - 2, rect.y);
+            graphics.fillStyle(0x78350f, 1);
+            graphics.fillRect(rect.x + rect.w - 16, rect.y - 11, 7, 11);
+          }
+
+          if (def.theme === "cafe") {
+            graphics.fillStyle(0xb45309, 1);
+            graphics.fillRect(rect.x + 4, rect.y + 6, rect.w - 8, 8);
+            graphics.fillStyle(0xfbbf24, 1);
+            for (let i = 0; i < 5; i += 1) {
+              graphics.fillRect(rect.x + 6 + i * 14, rect.y + 8, 6, 6);
+            }
+          }
+
+          if (def.theme === "office") {
+            graphics.fillStyle(0x94a3b8, 0.4);
+            for (let x = rect.x + 10; x < rect.x + rect.w - 6; x += 12) {
+              graphics.fillRect(x, rect.y + 6, 3, rect.h - 12);
+            }
+            graphics.fillStyle(0x334155, 1);
+            graphics.fillRect(rect.x, rect.y - 6, rect.w, 6);
+          }
+
+          if (def.theme === "market") {
+            graphics.fillStyle(0x14532d, 1);
+            graphics.fillRect(rect.x + 4, rect.y + 4, rect.w - 8, 8);
+            graphics.fillStyle(0x22c55e, 1);
+            graphics.fillRect(rect.x + 10, rect.y + rect.h - 14, rect.w - 20, 8);
+          }
+
+          if (def.theme === "social") {
+            graphics.fillStyle(0xa78bfa, 0.35);
+            graphics.fillRect(rect.x + 6, rect.y + 5, rect.w - 12, 8);
+            graphics.fillStyle(0xe9d5ff, 1);
+            graphics.fillRect(rect.x + rect.w / 2 - 1, rect.y - 12, 2, 12);
+            graphics.fillCircle(rect.x + rect.w / 2, rect.y - 13, 3);
+          }
+
+          if (def.theme === "bank") {
+            graphics.fillStyle(0xfacc15, 0.22);
+            graphics.fillRect(rect.x + 6, rect.y + 8, rect.w - 12, 7);
+            graphics.fillStyle(0xeab308, 0.7);
+            for (let i = 0; i < 4; i += 1) {
+              graphics.fillRect(rect.x + 10 + i * 14, rect.y + 16, 6, rect.h - 22);
+            }
+            graphics.lineStyle(2, 0x451a03, 0.8);
+            graphics.strokeCircle(rect.x + rect.w / 2, rect.y + rect.h - 14, 7);
+          }
+
+          if (def.theme === "temple") {
+            graphics.fillStyle(0xd4af37, 0.85);
+            graphics.fillTriangle(rect.x + 6, rect.y, rect.x + rect.w / 2, rect.y - 18, rect.x + rect.w - 6, rect.y);
+            for (let i = 0; i < 4; i += 1) {
+              graphics.fillStyle(0xfef3c7, 0.92);
+              graphics.fillRect(rect.x + 12 + i * 14, rect.y + 10, 7, rect.h - 16);
+            }
+            graphics.fillStyle(0xb45309, 0.8);
+            graphics.fillRect(rect.x + 8, rect.y + rect.h - 8, rect.w - 16, 6);
+          }
+
+          if (def.theme === "shelter") {
+            graphics.fillStyle(0x064e3b, 1);
+            graphics.fillRect(rect.x + 4, rect.y + 4, rect.w - 8, 10);
+            graphics.fillStyle(0x34d399, 0.9);
+            graphics.fillRect(rect.x + rect.w / 2 - 4, rect.y + 10, 8, rect.h - 20);
+            graphics.fillRect(rect.x + 12, rect.y + rect.h / 2 - 3, rect.w - 24, 6);
+            const halo = this.add.graphics();
+            halo.lineStyle(2, 0x00ff88, 0.35);
+            halo.strokeEllipse(rect.x + rect.w / 2, rect.y + rect.h / 2, rect.w + 16, rect.h + 12);
+            this.tweens.add({ targets: halo, alpha: 0.2, duration: 900, yoyo: true, repeat: -1, ease: "Sine.InOut" });
+          }
+
+          return windows;
+        }
+
+        scheduleWindowBlink(windowRect) {
+          const delay = Phaser.Math.Between(900, 3500);
+          this.time.delayedCall(delay, () => {
+            this.tweens.add({
+              targets: windowRect,
+              alpha: { from: 0.2, to: 0.92 },
+              duration: Phaser.Math.Between(160, 260),
+              yoyo: true,
+              repeat: 0,
+              onComplete: () => {
+                windowRect.setAlpha(0.2);
+                this.scheduleWindowBlink(windowRect);
+              }
+            });
+          });
+        }
+
+        buildTempleAura() {
+          const temple = this.buildings.temple;
+          if (!temple) return;
+          const centerX = temple.rect.x + temple.rect.w / 2;
+          const centerY = temple.rect.y + temple.rect.h / 2;
+
+          this.templeEmitter = this.add.particles(centerX, centerY, "pixel-gold", {
+            lifespan: 1800,
+            quantity: 1,
+            frequency: 140,
+            scale: { start: 1.1, end: 0 },
+            speed: { min: 20, max: 36 },
+            alpha: { start: 0.7, end: 0 },
+            blendMode: "ADD",
+            emitZone: {
+              type: "edge",
+              source: new Phaser.Geom.Circle(0, 0, 62),
+              quantity: 48
+            }
+          });
+          this.templeEmitter.setDepth(3);
+
+          for (let i = 0; i < 10; i += 1) {
+            const orb = this.add.image(centerX, centerY, "pixel-gold");
+            orb.setScale(1.2 + Math.random() * 0.8);
+            orb.setAlpha(0.6 + Math.random() * 0.2);
+            this.templeOrbiters.push({
+              sprite: orb,
+              angle: Math.random() * Math.PI * 2,
+              radius: 44 + Math.random() * 20,
+              speed: 0.6 + Math.random() * 1.1
+            });
+          }
+        }
+
+        updateTempleOrbiters(delta) {
+          const temple = this.buildings.temple;
+          if (!temple) return;
+          const centerX = temple.rect.x + temple.rect.w / 2;
+          const centerY = temple.rect.y + temple.rect.h / 2;
+          const dt = delta / 1000;
+
+          for (const orb of this.templeOrbiters) {
+            orb.angle += dt * orb.speed;
+            orb.sprite.setPosition(
+              centerX + Math.cos(orb.angle) * orb.radius,
+              centerY + Math.sin(orb.angle) * (orb.radius * 0.72)
+            );
+          }
+        }
+
+        buildXiaobai() {
+          const start = this.getBuildingEntry(BUILDING_DEFS.home);
+          this.xiaobaiRoot = this.add.container(start.x, start.y);
+          this.xiaobaiRoot.setDepth(20);
+
+          const shadow = this.add.ellipse(0, 14, 20, 8, 0x000000, 0.34);
+          const bodyHolder = this.add.container(0, 0);
+          const body = this.add.graphics();
+          bodyHolder.add(body);
+
+          this.xiaobaiRoot.add([shadow, bodyHolder]);
+
+          this.xiaobaiBody = body;
+          this.xiaobaiBodyContainer = bodyHolder;
+          this.redrawXiaobai(COLORS.xiaobai);
+
+          this.breathTween = this.tweens.add({
+            targets: this.xiaobaiRoot,
+            scaleX: 1.02,
+            scaleY: 1.02,
+            duration: 1200,
+            yoyo: true,
+            repeat: -1,
+            ease: "Sine.InOut"
+          });
+        }
+
+        redrawXiaobai(mainColor) {
+          const g = this.xiaobaiBody;
+          g.clear();
+
+          const clawColor = shiftColor(mainColor, 28);
+          g.fillStyle(mainColor, 1);
+          g.fillEllipse(0, 1, 16, 20);
+
+          g.fillStyle(clawColor, 1);
+          g.fillRect(-14, -4, 10, 6);
+          g.fillRect(4, -4, 10, 6);
+
+          g.fillStyle(shiftColor(mainColor, -28), 1);
+          g.fillRect(-2, 8, 4, 5);
+
+          g.fillStyle(0xffffff, 1);
+          g.fillRect(-4, -8, 3, 3);
+          g.fillRect(1, -8, 3, 3);
+
+          g.fillStyle(0x0f172a, 1);
+          g.fillRect(-3, -7, 1, 1);
+          g.fillRect(2, -7, 1, 1);
+        }
+
+        buildDangerEmitter() {
+          this.dangerEmitter = this.add.particles(0, 0, "pixel-red", {
+            lifespan: 450,
+            speed: { min: 14, max: 42 },
+            scale: { start: 1.2, end: 0 },
+            quantity: 1,
+            frequency: 90,
+            blendMode: "ADD",
+            alpha: { start: 0.8, end: 0 },
+            emitZone: {
+              type: "edge",
+              source: new Phaser.Geom.Circle(0, 0, 22),
+              quantity: 20
+            }
+          });
+          this.dangerEmitter.startFollow(this.xiaobaiRoot);
+          this.dangerEmitter.stop();
+        }
+
+        setupCamera() {
+          const camera = this.cameras.main;
+          camera.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+          camera.startFollow(this.xiaobaiRoot, true, 0.08, 0.08);
+          camera.setZoom(1);
+        }
+
+        setFacingByTarget(targetX) {
+          this.facing = targetX < this.xiaobaiRoot.x ? -1 : 1;
+          this.xiaobaiBodyContainer.setScale(this.facing, 1);
+        }
+
+        moveXiaobaiTo(sceneId) {
+          const def = BUILDING_DEFS[sceneId] || BUILDING_DEFS.home;
+          const target = this.getBuildingEntry(def);
+          this.setFacingByTarget(target.x);
+
+          if (this.moveTween) this.moveTween.stop();
+          this.startWalkMotion();
+
+          this.moveTween = this.tweens.add({
+            targets: this.xiaobaiRoot,
+            x: target.x,
+            y: target.y,
+            duration: 2000,
+            ease: "Power2",
+            onComplete: () => {
+              this.stopWalkMotion();
+              this.playLandingBounce();
+            }
+          });
+        }
+
+        startWalkMotion() {
+          if (this.walkTween) this.walkTween.stop();
+          this.walkTween = this.tweens.add({
+            targets: this.xiaobaiBodyContainer,
+            y: -2,
+            duration: 110,
+            yoyo: true,
+            repeat: -1,
+            ease: "Sine.InOut"
+          });
+        }
+
+        stopWalkMotion() {
+          if (!this.walkTween) return;
+          this.walkTween.stop();
+          this.walkTween = null;
+          this.xiaobaiBodyContainer.y = 0;
+        }
+
+        playLandingBounce() {
+          this.tweens.add({
+            targets: this.xiaobaiRoot,
+            scaleX: { from: 0.9, to: 1.1 },
+            scaleY: { from: 0.9, to: 1.1 },
+            duration: 75,
+            yoyo: true,
+            repeat: 1,
+            onComplete: () => {
+              this.xiaobaiRoot.setScale(1);
+            }
+          });
+        }
+
+        applyMood(mood) {
+          if (this.stressTween) {
+            this.stressTween.stop();
+            this.stressTween = null;
+            this.xiaobaiBodyContainer.x = 0;
+          }
+          if (this.moodFlashTween) {
+            this.moodFlashTween.stop();
+            this.moodFlashTween = null;
+            this.xiaobaiBody.alpha = 1;
+          }
+
+          if (this.breathTween) this.breathTween.timeScale = 1;
+
+          if (DANGER_MOODS.has(mood)) {
+            this.redrawXiaobai(COLORS.xiaobaiDanger);
+            this.dangerEmitter.start();
+            this.isDangerMood = true;
+
+            this.moodFlashTween = this.tweens.add({
+              targets: this.xiaobaiBody,
+              alpha: 0.45,
+              duration: 120,
+              yoyo: true,
+              repeat: -1
+            });
+          } else if (ALERT_MOODS.has(mood)) {
+            this.redrawXiaobai(COLORS.xiaobaiAlert);
+            this.dangerEmitter.stop();
+            this.isDangerMood = false;
+
+            this.stressTween = this.tweens.add({
+              targets: this.xiaobaiBodyContainer,
+              x: 1.3,
+              duration: 70,
+              yoyo: true,
+              repeat: -1
+            });
+
+            if (this.breathTween) this.breathTween.timeScale = 2.1;
+          } else {
+            this.redrawXiaobai(COLORS.xiaobai);
+            this.dangerEmitter.stop();
+            this.isDangerMood = false;
+            if (this.breathTween) this.breathTween.timeScale = 1;
+          }
+        }
+
+        setActiveBuilding(sceneId) {
+          if (this.currentBuildingId === sceneId) return;
+
+          if (this.currentBuildingId && this.buildings[this.currentBuildingId]) {
+            const previous = this.buildings[this.currentBuildingId];
+            if (previous.glowTween) {
+              previous.glowTween.stop();
+              previous.glowTween = null;
+            }
+            previous.glow.setAlpha(0);
+          }
+
+          this.currentBuildingId = sceneId;
+          const current = this.buildings[sceneId];
+          if (!current) return;
+
+          current.glow.setAlpha(0.32);
+          current.glowTween = this.tweens.add({
+            targets: current.glow,
+            alpha: { from: 0.25, to: 0.7 },
+            duration: 550,
+            yoyo: true,
+            repeat: -1,
+            ease: "Sine.InOut"
+          });
+        }
+
+        updateThreatWarning(threatText) {
+          if (this.warningTween) {
+            this.warningTween.stop();
+            this.warningTween = null;
+          }
+
+          Object.values(this.buildings).forEach((item) => item.warning.setAlpha(0));
+
+          if (!threatText || !this.currentBuildingId) return;
+
+          const building = this.buildings[this.currentBuildingId];
+          if (!building) return;
+
+          building.warning.setAlpha(0.2);
+          this.warningTween = this.tweens.add({
+            targets: building.warning,
+            alpha: { from: 0.15, to: 0.88 },
+            duration: 240,
+            yoyo: true,
+            repeat: -1,
+            ease: "Sine.InOut"
+          });
+        }
+
+        showThreatNpc(threatText) {
+          if (!threatText) {
+            this.hideThreatNpc();
+            return;
+          }
+
+          if (this.threatNpc) return;
+
+          const npc = this.add.container(this.xiaobaiRoot.x + 36, this.xiaobaiRoot.y);
+          npc.setDepth(25);
+
+          const aura = this.add.circle(0, 0, 13, 0x3b0a5c, 0.35);
+          const core = this.add.circle(0, 0, 9, COLORS.threat, 0.95);
+          const icon = this.add.text(0, -1, "?", {
+            fontFamily: "monospace",
+            fontSize: "12px",
+            color: "#f8f5ff"
+          }).setOrigin(0.5, 0.5);
+
+          npc.add([aura, core, icon]);
+          this.threatNpc = npc;
+          this.threatNpcOrbit = { angle: 0, radius: 36 };
+
+          this.npcOrbitTween = this.tweens.add({
+            targets: this.threatNpcOrbit,
+            angle: 360,
+            duration: 3600,
+            repeat: -1,
+            ease: "Linear"
+          });
+        }
+
+        hideThreatNpc() {
+          if (!this.threatNpc) return;
+
+          if (this.npcOrbitTween) {
+            this.npcOrbitTween.stop();
+            this.npcOrbitTween = null;
+          }
+
+          const npc = this.threatNpc;
+          this.threatNpc = null;
+
+          this.tweens.add({
+            targets: npc,
+            scaleX: 0,
+            scaleY: 0,
+            alpha: 0,
+            duration: 300,
+            ease: "Quad.Out",
+            onComplete: () => npc.destroy()
+          });
+        }
+
+        updateThreatNpcPosition() {
+          if (!this.threatNpc) return;
+
+          const angle = Phaser.Math.DegToRad(this.threatNpcOrbit.angle);
+          const x = this.xiaobaiRoot.x + Math.cos(angle) * this.threatNpcOrbit.radius;
+          const y = this.xiaobaiRoot.y + Math.sin(angle) * this.threatNpcOrbit.radius * 0.65;
+          this.threatNpc.setPosition(x, y);
+        }
+
+        showSpeechBubble(message) {
+          if (!message) return;
+
+          if (this.speechBubble) {
+            this.speechBubble.destroy();
+            this.speechBubble = null;
+          }
+
+          const content = message.slice(0, 20);
+          const bubble = this.add.container(this.xiaobaiRoot.x, this.xiaobaiRoot.y - 48);
+          bubble.setDepth(40);
+
+          const width = Math.max(80, content.length * 11 + 18);
+          const bg = this.add.graphics();
+          bg.fillStyle(0xffffff, 0.97);
+          bg.fillRoundedRect(-width / 2, -18, width, 28, 8);
+          bg.fillTriangle(-7, 10, 7, 10, 0, 18);
+          bg.lineStyle(1, 0x0f172a, 0.75);
+          bg.strokeRoundedRect(-width / 2, -18, width, 28, 8);
+
+          const text = this.add.text(0, -4, content, {
+            fontFamily: "monospace",
+            fontSize: "11px",
+            color: "#0f172a"
+          }).setOrigin(0.5, 0.5);
+
+          bubble.add([bg, text]);
+          this.speechBubble = bubble;
+
+          this.tweens.add({
+            targets: bubble,
+            alpha: 0,
+            duration: 320,
+            delay: 3000,
+            onComplete: () => {
+              if (this.speechBubble === bubble) this.speechBubble = null;
+              bubble.destroy();
+            }
+          });
+        }
+
+        updateSpeechBubblePosition() {
+          if (!this.speechBubble) return;
+          this.speechBubble.setPosition(this.xiaobaiRoot.x, this.xiaobaiRoot.y - 48);
+        }
+
+        applyWorldState(state, options = {}) {
+          const sceneId = getSceneIdByLocation(state.location);
+          this.setActiveBuilding(sceneId);
+          this.updateThreatWarning(state.threat);
+          this.applyMood(state.mood);
+
+          if (!options.skipMovement) {
+            this.moveXiaobaiTo(sceneId);
+          } else {
+            const entry = this.getBuildingEntry(BUILDING_DEFS[sceneId] || BUILDING_DEFS.home);
+            this.xiaobaiRoot.setPosition(entry.x, entry.y);
+          }
+
+          if (state.threat) {
+            this.showThreatNpc(state.threat);
+          } else {
+            this.hideThreatNpc();
+          }
+
+          if (options.eventText) {
+            this.showSpeechBubble(options.eventText);
+          }
+        }
+      }
+
+      const game = new Phaser.Game({
+        type: Phaser.AUTO,
+        parent: "game-container",
+        width: 960,
+        height: 640,
+        backgroundColor: "#050d1a",
+        pixelArt: true,
+        antialias: false,
+        scene: [WorldScene],
+        scale: {
+          mode: Phaser.Scale.RESIZE,
+          autoCenter: Phaser.Scale.CENTER_BOTH
         },
-        initStep.event
-      );
-      startDemo();
+        render: {
+          roundPixels: true
+        }
+      });
+
+      setMode("DEMO");
+      applyState(DEFAULT_STATE, { eventText: DEFAULT_STATE.last_event, forceEvent: true, skipMovement: true });
+      startDemoLoop();
+
       pollWorldState();
-      setInterval(pollWorldState, 2000);
-      requestAnimationFrame(render);
-    }
-    init();
+      window.setInterval(pollWorldState, 2000);
+
+      window.addEventListener("beforeunload", () => {
+        if (demoTimer) window.clearInterval(demoTimer);
+        game.destroy(true);
+      });
+    })();
   </script>
 </body>
 </html>
