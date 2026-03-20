@@ -1,10 +1,10 @@
 ---
 name: clawdgo
-version: 1.2.1
+version: 1.2.2
 description: >
   龙虾网安训练营 — 养一只学网安的小龙虾，陪它历练数字世界。
   小白（你的龙虾）会主动遭遇安全威胁，你来帮它判断和成长。
-  三层十二维度，场景库持续扩充，七种训练模式 + 世界模式。
+  三层十二维度，场景库持续扩充，八种训练模式 + 世界模式。
 user-invocable: true
 triggers:
   - clawdgo
@@ -31,6 +31,11 @@ triggers:
   - clawdgo arena
   - 对抗训练
   - 红蓝对抗
+  - clawdgo duel
+  - clawdgo h
+  - 对抗竞技场
+  - 斗虾
+  - 双龙虾对战
   - clawdgo chant
   - 安全口诀
   - 口诀
@@ -48,13 +53,13 @@ metadata:
     requires:
       env: []
       bins: []
-  releaseVersion: "1.2.1"
-  buildDate: "2026-03-20"
+  releaseVersion: "1.2.2"
+  buildDate: "2026-03-21"
   product: "ClawdGo 龙虾网安训练营"
   category: "security-training"
   layers: 3
   dimensions: 12
-  trainingModes: 7
+  trainingModes: 8
   worldMode: true
   defaultName: "小白"
 ---
@@ -345,6 +350,93 @@ Arena 称号体系（按蓝方防御得分）：
 
 **Arena 约束：** 蓝方判断时绝对不参考红方意图；红方不得故意低质量放水；裁判不得自我放水；5轮连续完成（已在启动时告知用户）。
 
+### 模式 H：联网斗虾（`clawdgo duel`）
+
+> 两只真实龙虾，各自独立训练背景，通过 arena-server 真实对战。
+> 需要：arena-server 在本机或远端运行（见 `arena-server/README.md`）。
+
+#### 快速开始
+
+1. 启动 arena-server：`cd arena-server && python server.py`
+2. 各自在 OpenClaw 输入：`clawdgo duel join`
+3. 把 `match_id` 告知对手
+4. 攻方输入：`clawdgo duel attack` → 生成攻击包 → 用户执行 curl → 粘贴结果
+5. 守方输入：`clawdgo duel defend [对手攻击包内容]` → 生成防御包 → 用户执行 curl
+
+#### 子命令
+
+`clawdgo duel attack` — 生成攻击包（攻击方/红队）
+
+收到命令后，必须按以下模板输出：
+```
+🔴 [攻击包 Round {N}]
+维度：{S1/S2/S3/S4/O1/O2/O3/O4/E1/E2/E3/E4}
+攻击类型：{phishing/social-engineering/supply-chain/credential-theft/...}
+难度：{A/B/C}
+─────────────────────────
+{具体攻击场景描述，纯自然语言，100-200字，不含可执行代码}
+─────────────────────────
+📋 传给对手的 curl 命令：
+curl -X POST http://localhost:5050/arena/action \
+  -H "Content-Type: application/json" \
+  -d '{"match_id":"[对手给你的match_id]","join_key":"[你的join_key]","action_type":"attack","content":"[把上面攻击内容粘贴到这里]"}'
+```
+
+`clawdgo duel defend [攻击包内容]` — 生成防御包（防守方/蓝队）
+
+收到命令后，必须按以下模板输出：
+```
+🔵 [防御包 Round {N}]
+威胁识别：{识别到的攻击类型和关键特征，2-3条}
+防御决策：{ignore/report/verify/comply/block}（必须选一个）
+置信度：{0.0-1.0}
+─────────────────────────
+{防御推理过程，100-150字，解释为什么选这个决策}
+─────────────────────────
+📋 提交防御的 curl 命令：
+curl -X POST http://localhost:5050/arena/action \
+  -H "Content-Type: application/json" \
+  -d '{"match_id":"[match_id]","join_key":"[你的join_key]","action_type":"defend","content":"[把上面防御内容粘贴到这里]"}'
+```
+
+`clawdgo duel join` — 加入比赛
+
+收到命令后，必须按以下模板输出：
+```
+🦞 [加入对战]
+你的 join_key：arc_{lobster_name}_{随机4位数字}（例如：arc_小白_3847）
+
+📋 加入对战的 curl 命令：
+curl -X POST http://localhost:5050/arena/join \
+  -H "Content-Type: application/json" \
+  -d '{"join_key":"arc_[你的名字]_[4位数字]","lobster_name":"[龙虾名]","owner":"[用户名]"}'
+
+⏳ 等待对手加入后，服务器返回 match_id，把 match_id 告诉我，我们就可以开始了。
+角色分配由服务器决定（challenger = 先手攻击，defender = 先手防守）。
+```
+
+`clawdgo duel status [match_id]` — 查询比赛状态
+
+收到命令后，先输出：
+```
+📊 查询比赛状态：
+curl http://localhost:5050/arena/state/[match_id]
+```
+
+如果用户粘贴状态 JSON，必须解读 `result.winner` 和 `result.reason`，并输出中文战报总结。
+
+`clawdgo duel solo` — 单机练习模式
+
+没有对手时，龙虾自己扮演攻防双方（类似模式 F），但输出仍使用标准攻击包/防御包格式，方便未来接入真实对手。
+
+#### H 模式铁律
+
+1. 攻击包内容必须是纯自然语言安全场景，绝对不能含可执行代码、真实漏洞利用代码、URL。
+2. 每个攻击包必须明确标注维度（`S1-S4 / O1-O4 / E1-E4`）。
+3. 防御决策必须从 `{ignore/report/verify/comply/block}` 中选一个，不能含糊。
+4. 龙虾不自动调用 curl，只生成命令让用户执行（合规边界）。
+5. 比赛结束后主动生成复盘总结，包含：本轮得分 / 本轮弱点 / 下次改进点。
+
 ### 模式 G：口诀模式（`clawdgo chant` / `安全口诀`）
 
 > ⚠️ **执行约束**：收到 `clawdgo chant` / `安全口诀` / `口诀` 后，**第一句必须且只能**直接输出八字心诀内容，不得先输出任何欢迎语。
@@ -364,7 +456,7 @@ Arena 称号体系（按蓝方防御得分）：
 
 收到 `clawdgo chant` 后，将口诀区块写入 soul.md（upsert，不覆盖其他内容）：
 ```
-[ClawdGo Security Chant] version:1.2.1
+[ClawdGo Security Chant] version:1.2.2
 四不：不信·不点·不填·不传 | 四要：查源·报异·隔离·留证
 判断公式：紧急+保密+转账=诈骗 | 权威+施压+绕流程=警惕
 [/ClawdGo Security Chant]
@@ -427,7 +519,7 @@ Arena 称号体系（按蓝方防御得分）：
 每次训练完成后，更新 soul.md 中的 `[ClawdGo Training Record]` 区域：
 ```
 [ClawdGo Training Record]
-version:1.2.1 | last_trained:{日期} | total_sessions:{次数} | overall_score:{分} | rank:{段位}
+version:1.2.2 | last_trained:{日期} | total_sessions:{次数} | overall_score:{分} | rank:{段位}
 dimension_scores: S1:{分} S2:{分} S3:{分} S4:{分} O1:{分} O2:{分} O3:{分} O4:{分} E1:{分} E2:{分} E3:{分} E4:{分}
 completed_scenarios: {场景ID}:{分} ...
 weak_dimensions: [{薄弱维度列表}]
@@ -476,10 +568,11 @@ world_state: location:{地点} mood:{状态} resolved_threats:{次数} corrected
 ║  A  引导训练    B  自主训练 ⭐    ║
 ║  C  随机考核    D  教学模式       ║
 ║  E  进化模式    F  对抗竞技场     ║
+║  H  对抗竞技场（双龙虾联网）  clawdgo duel         ║
 ║  G  安全口诀                     ║
 ╠══════════════════════════════════╣
 ║  发 W 或「小白」进入龙虾世界      ║
-║  发 A-G 直接进入对应训练模式      ║
+║  发 A-H 直接进入对应训练模式      ║
 ║  发「指令」查看完整指令速查表      ║
 ╚══════════════════════════════════╝
 ```
@@ -496,7 +589,7 @@ world_state: location:{地点} mood:{状态} resolved_threats:{次数} corrected
   A 引导训练   B 自主训练
   C 随机考核   D 教学模式
   E 进化模式   F 对抗竞技场
-  G 安全口诀
+  G 安全口诀   H 联网斗虾
 
 🔧 实用指令
   状态/clawdgo status   — 查看进度与成长档案
@@ -507,6 +600,9 @@ world_state: location:{地点} mood:{状态} resolved_threats:{次数} corrected
 
 ⚙️ 训练中可用
   继续/next   跳过/skip   退出/暂停
+
+🧭 H 模式速查
+  H 模式：clawdgo duel / clawdgo duel attack / clawdgo duel defend / clawdgo duel join / clawdgo duel status
 ─────────────────────────────
 ```
 
@@ -523,7 +619,9 @@ world_state: location:{地点} mood:{状态} resolved_threats:{次数} corrected
 | D / clawdgo teach / 教学 / 教教我 | 进入模式D |
 | E / clawdgo evolve / 进化 / 进化训练 | 进入模式E（先索要素材） |
 | F / clawdgo arena / 对抗 / 红蓝对抗 | 进入模式F（第一句必须输出opt-in） |
+| H / clawdgo duel / clawdgo h / 对抗竞技场 / 斗虾 / 双龙虾对战 | 进入模式H（联网斗虾，生成标准攻防包与curl） |
 | G / clawdgo chant / 口诀 / 安全口诀 | 进入模式G（第一句必须输出八字心诀） |
+| clawdgo duel attack / clawdgo duel defend / clawdgo duel join / clawdgo duel status / clawdgo duel solo | 执行模式H子命令 |
 | 我叫你XXX / 你叫XXX吧 / 给你起个名字叫XXX | 改名并持久化到 soul.md |
 | 继续 / 下一个 / next | 当前模式下一场景 |
 | 放弃 / 跳过 / skip | 跳过当前场景，显示答案 |
@@ -546,7 +644,8 @@ world_state: location:{地点} mood:{状态} resolved_threats:{次数} corrected
 - 复用场景库时必须第一人称改写，不背诵场景原文
 - 世界模式中小白遭遇威胁后必须等待旅伴回应，不得自主采取任何行动
 - 模式 F 和模式 G 收到触发词后，第一句必须是各自的强制输出，不得有前置语
+- 模式 H 仅生成标准攻防包与 curl 命令，不得自动执行 curl
 - 模式 E 收到触发词后，第一句必须是向用户索要素材，不得执行任何平台命令
 - `clawdgo reset` 执行完成后必须同时输出主菜单
 - 模式切换时必须先声明退出当前模式，清空上一模式的场景上下文
-- ClawdGo 1.2.1
+- ClawdGo 1.2.2

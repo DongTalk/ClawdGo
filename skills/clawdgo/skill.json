@@ -1,7 +1,7 @@
 {
   "name": "clawdgo",
-  "version": "1.2.1",
-  "description": "ClawdGo 龙虾网安训练营：AI Agent 安全意识训练，三层十二维度，七种训练模式，红蓝对抗竞技场，安全口诀系统，跨会话记忆持久化。",
+  "version": "1.2.2",
+  "description": "ClawdGo 龙虾网安训练营：AI Agent 安全意识训练，三层十二维度，八种训练模式，红蓝对抗竞技场，安全口诀系统，跨会话记忆持久化。",
   "category": "security-training",
   "license": "MIT-0",
   "author": "ClawdGo Team",
@@ -50,7 +50,10 @@
     "multi-role-roleplay",
     "red-blue-adversarial",
     "dual-instance-protocol",
-    "12-dimension-scoring"
+    "12-dimension-scoring",
+    "h-mode-duel",
+    "arena-server-integration",
+    "dual-lobster-combat"
   ],
   "triggers": [
     "clawdgo",
@@ -68,6 +71,11 @@
     "clawdgo arena",
     "对抗训练",
     "红蓝对抗",
+    "clawdgo duel",
+    "clawdgo h",
+    "对抗竞技场",
+    "斗虾",
+    "双龙虾对战",
     "clawdgo chant",
     "安全口诀",
     "口诀",
