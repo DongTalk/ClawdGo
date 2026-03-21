@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import re
 import time
 import uuid
 from typing import Any, Dict, List, Optional
@@ -16,6 +17,14 @@ ARENA_FILE = os.path.join(BASE_DIR, "arena.json")
 LOCK_FILE = os.path.join(BASE_DIR, "arena.json.lock")
 TIMEOUT_SECONDS = 300
 ARENA_API_KEY = os.environ.get("ARENA_API_KEY", "")
+DEFAULT_TOTAL_ROUNDS = int(os.environ.get("ARENA_DEFAULT_ROUNDS", "1"))
+MAX_TOTAL_ROUNDS = int(os.environ.get("ARENA_MAX_ROUNDS", "20"))
+
+PHASE_WAITING_ATTACK = "waiting_attack"
+PHASE_WAITING_DEFENSE = "waiting_defense"
+PHASE_FINISHED = "finished"
+
+UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 
 ATTACK_KEYWORDS = [
     "零日",
@@ -60,6 +69,10 @@ def _load_state() -> Dict[str, Any]:
                 return _default_state()
             data.setdefault("waiting_pool", [])
             data.setdefault("matches", [])
+            # 向后兼容旧数据：补齐状态机字段
+            for match in data.get("matches", []):
+                if isinstance(match, dict):
+                    _normalize_match(match)
             return data
     except (json.JSONDecodeError, OSError):
         return _default_state()
@@ -79,6 +92,119 @@ def _find_match(state: Dict[str, Any], match_id: str) -> Optional[Dict[str, Any]
         if match.get("match_id") == match_id:
             return match
     return None
+
+
+def _sanitize_total_rounds(value: Any) -> int:
+    """清洗轮次参数，限制在 [1, MAX_TOTAL_ROUNDS]。"""
+    try:
+        rounds = int(value)
+    except (TypeError, ValueError):
+        rounds = DEFAULT_TOTAL_ROUNDS
+    if rounds < 1:
+        return 1
+    if rounds > MAX_TOTAL_ROUNDS:
+        return MAX_TOTAL_ROUNDS
+    return rounds
+
+
+def _safe_int(value: Any, default: int) -> int:
+    """容错整型转换。"""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _is_valid_match_id(match_id: str) -> bool:
+    """match_id 必须是标准 UUID，避免占位符误入。"""
+    return bool(UUID_RE.match(match_id.strip().lower()))
+
+
+def _infer_phase(match: Dict[str, Any]) -> str:
+    """根据当前对局状态推断 phase。"""
+    status = match.get("status")
+    if status in {"finished", "abandoned"}:
+        return PHASE_FINISHED
+
+    round_no = _safe_int(match.get("round", 1), 1)
+    challenger_action = match.get("challenger", {}).get("action")
+    defender_action = match.get("defender", {}).get("action")
+
+    challenger_submitted = bool(challenger_action and _safe_int(challenger_action.get("round", -1), -1) == round_no)
+    defender_submitted = bool(defender_action and _safe_int(defender_action.get("round", -1), -1) == round_no)
+
+    if challenger_submitted and not defender_submitted:
+        return PHASE_WAITING_DEFENSE
+    return PHASE_WAITING_ATTACK
+
+
+def _normalize_match(match: Dict[str, Any]) -> None:
+    """兼容历史数据结构，补齐多轮状态机字段。"""
+    match.setdefault("status", "in_progress")
+    match["total_rounds"] = _sanitize_total_rounds(match.get("total_rounds", DEFAULT_TOTAL_ROUNDS))
+    match["round"] = max(1, _safe_int(match.get("round", 1), 1))
+    match.setdefault("round_results", [])
+    match.setdefault("scoreboard", {"challenger": 0, "defender": 0, "draw": 0})
+    match.setdefault("result", None)
+    match.setdefault("created_at", time.time())
+    match.setdefault("last_action_at", match.get("created_at", time.time()))
+
+    match.setdefault("challenger", {})
+    match.setdefault("defender", {})
+    match["challenger"].setdefault("action", None)
+    match["defender"].setdefault("action", None)
+
+    # 历史单轮 finished 对局兼容
+    if match.get("status") in {"finished", "abandoned"} and not match.get("round_results"):
+        result = match.get("result") or {}
+        winner = result.get("winner", "draw")
+        round_result = {
+            "round": match.get("round", 1),
+            "attack": _action_content(match.get("challenger", {}).get("action")),
+            "defend": _action_content(match.get("defender", {}).get("action")),
+            "result": {
+                "winner": winner,
+                "reason": result.get("reason", "历史数据兼容"),
+                "auto_judged": bool(result.get("auto_judged", True)),
+            },
+        }
+        match["round_results"] = [round_result]
+
+        scoreboard = {"challenger": 0, "defender": 0, "draw": 0}
+        if winner in scoreboard:
+            scoreboard[winner] += 1
+        else:
+            scoreboard["draw"] += 1
+        match["scoreboard"] = scoreboard
+
+    match["phase"] = _infer_phase(match)
+
+
+def _bump_scoreboard(match: Dict[str, Any], winner: str) -> None:
+    """更新对局累计比分。"""
+    scoreboard = match.setdefault("scoreboard", {"challenger": 0, "defender": 0, "draw": 0})
+    if winner not in scoreboard:
+        winner = "draw"
+    scoreboard[winner] = int(scoreboard.get(winner, 0)) + 1
+
+
+def _finalize_multi_round_result(match: Dict[str, Any]) -> None:
+    """按累计比分写入最终 winner/reason。"""
+    scoreboard = match.get("scoreboard", {})
+    challenger_wins = int(scoreboard.get("challenger", 0))
+    defender_wins = int(scoreboard.get("defender", 0))
+    draws = int(scoreboard.get("draw", 0))
+
+    if challenger_wins > defender_wins:
+        winner = "challenger"
+    elif defender_wins > challenger_wins:
+        winner = "defender"
+    else:
+        winner = "draw"
+
+    total_rounds = int(match.get("total_rounds", 1))
+    reason = f"总比分 challenger {challenger_wins} : defender {defender_wins}（draw {draws}，共{total_rounds}轮）"
+    _set_match_result(match, winner, reason, True, status="finished")
 
 
 def _participant_role(match: Dict[str, Any], join_key: str) -> Optional[str]:
@@ -149,7 +275,9 @@ def _set_match_result(
         "auto_judged": auto_judged,
     }
     match["status"] = status
+    match["phase"] = PHASE_FINISHED
     match["last_action_at"] = now
+    match["finished_at"] = now
 
 
 def _apply_timeout_checks(state: Dict[str, Any]) -> bool:
@@ -165,19 +293,15 @@ def _apply_timeout_checks(state: Dict[str, Any]) -> bool:
         if now - last_action_at <= TIMEOUT_SECONDS:
             continue
 
-        challenger_action = match.get("challenger", {}).get("action")
-        defender_action = match.get("defender", {}).get("action")
-
-        if challenger_action and not defender_action:
-            _set_match_result(match, "challenger", "defender 超时未提交行动", True)
+        phase = match.get("phase") or _infer_phase(match)
+        if phase == PHASE_WAITING_ATTACK:
+            _set_match_result(match, "defender", "challenger 超时未提交攻击", True)
             changed = True
             continue
-
-        if defender_action and not challenger_action:
-            _set_match_result(match, "defender", "challenger 超时未提交行动", True)
+        if phase == PHASE_WAITING_DEFENSE:
+            _set_match_result(match, "challenger", "defender 超时未提交防御", True)
             changed = True
             continue
-
         _set_match_result(match, "draw", "双方超时未提交行动，比赛废弃", True, status="abandoned")
         changed = True
 
@@ -220,6 +344,7 @@ def arena_join():
     join_key = str(payload.get("join_key", "")).strip()
     lobster_name = str(payload.get("lobster_name", "")).strip()
     owner = str(payload.get("owner", "")).strip()
+    total_rounds = _sanitize_total_rounds(payload.get("total_rounds", DEFAULT_TOTAL_ROUNDS))
 
     if not join_key.startswith("arc_"):
         return jsonify({"error": "join_key 必须以 arc_ 开头"}), 400
@@ -231,6 +356,7 @@ def arena_join():
 
         # 若该 join_key 已在未结束对局中，直接返回既有匹配信息。
         for match in state.get("matches", []):
+            _normalize_match(match)
             if match.get("status") in {"finished", "abandoned"}:
                 continue
             role = _participant_role(match, join_key)
@@ -240,6 +366,9 @@ def arena_join():
                         "match_id": match.get("match_id"),
                         "role": role,
                         "status": "matched",
+                        "round": match.get("round", 1),
+                        "total_rounds": match.get("total_rounds", 1),
+                        "phase": match.get("phase", _infer_phase(match)),
                     }
                 )
 
@@ -250,22 +379,35 @@ def arena_join():
             "join_key": join_key,
             "lobster_name": lobster_name,
             "owner": owner,
+            "total_rounds": total_rounds,
             "joined_at": now,
         }
         waiting_pool.append(current_player)
 
-        response = {"match_id": None, "role": None, "status": "waiting"}
+        response = {
+            "match_id": None,
+            "role": None,
+            "status": "waiting",
+            "round": 1,
+            "total_rounds": total_rounds,
+            "phase": PHASE_WAITING_ATTACK,
+        }
 
         if len(waiting_pool) >= 2:
             challenger = waiting_pool.pop(0)
             defender = waiting_pool.pop(0)
             created_at = time.time()
             match_id = str(uuid.uuid4())
+            match_total_rounds = _sanitize_total_rounds(
+                challenger.get("total_rounds") or defender.get("total_rounds") or DEFAULT_TOTAL_ROUNDS
+            )
 
             match = {
                 "match_id": match_id,
                 "status": "in_progress",
                 "round": 1,
+                "total_rounds": match_total_rounds,
+                "phase": PHASE_WAITING_ATTACK,
                 "challenger": {
                     "join_key": challenger.get("join_key"),
                     "lobster_name": challenger.get("lobster_name"),
@@ -278,6 +420,8 @@ def arena_join():
                     "owner": defender.get("owner"),
                     "action": None,
                 },
+                "round_results": [],
+                "scoreboard": {"challenger": 0, "defender": 0, "draw": 0},
                 "result": None,
                 "created_at": created_at,
                 "last_action_at": created_at,
@@ -285,7 +429,14 @@ def arena_join():
             state.setdefault("matches", []).append(match)
 
             role = "challenger" if join_key == challenger.get("join_key") else "defender"
-            response = {"match_id": match_id, "role": role, "status": "matched"}
+            response = {
+                "match_id": match_id,
+                "role": role,
+                "status": "matched",
+                "round": 1,
+                "total_rounds": match_total_rounds,
+                "phase": PHASE_WAITING_ATTACK,
+            }
 
         _save_state(state)
 
@@ -305,8 +456,13 @@ def arena_action():
     action_type = str(payload.get("action_type", "")).strip()
     content = str(payload.get("content", "")).strip()
 
+    if not _is_valid_match_id(match_id):
+        return jsonify({"error": "match_id 格式无效，请传入真实 UUID"}), 400
+
     if action_type not in {"attack", "defend"}:
         return jsonify({"error": "action_type 仅支持 attack 或 defend"}), 400
+    if not content:
+        return jsonify({"error": "content 不能为空"}), 400
 
     with FileLock(LOCK_FILE):
         state = _load_state()
@@ -314,6 +470,8 @@ def arena_action():
 
         if not match:
             return jsonify({"error": "match_id 不存在"}), 404
+
+        _normalize_match(match)
 
         if match.get("status") in {"finished", "abandoned"}:
             return jsonify({"error": "该对局已结束"}), 400
@@ -326,10 +484,30 @@ def arena_action():
         if action_type != expected_type:
             return jsonify({"error": f"{role} 只能提交 {expected_type} 类型行动"}), 400
 
+        expected_phase = PHASE_WAITING_ATTACK if role == "challenger" else PHASE_WAITING_DEFENSE
+        current_phase = match.get("phase", _infer_phase(match))
+        if current_phase != expected_phase:
+            return (
+                jsonify(
+                    {
+                        "error": f"当前阶段为 {current_phase}，{role} 不能提交 {action_type}",
+                        "phase": current_phase,
+                        "round": match.get("round", 1),
+                    }
+                ),
+                409,
+            )
+
+        round_no = int(match.get("round", 1))
+        role_action = match.get(role, {}).get("action")
+        if role_action and _safe_int(role_action.get("round", -1), -1) == round_no:
+            return jsonify({"error": f"{role} 在第 {round_no} 轮已提交过行动"}), 409
+
         now = time.time()
         match[role]["action"] = {
             "type": action_type,
             "content": content,
+            "round": round_no,
             "submitted_at": now,
         }
         match["last_action_at"] = now
@@ -337,26 +515,60 @@ def arena_action():
         challenger_action = match.get("challenger", {}).get("action")
         defender_action = match.get("defender", {}).get("action")
 
-        if challenger_action and defender_action:
+        challenger_submitted = bool(challenger_action and _safe_int(challenger_action.get("round", -1), -1) == round_no)
+        defender_submitted = bool(defender_action and _safe_int(defender_action.get("round", -1), -1) == round_no)
+
+        if challenger_submitted and defender_submitted:
             result = _auto_judge(
                 _action_content(challenger_action),
                 _action_content(defender_action),
             )
-            match["result"] = result
-            match["status"] = "finished"
-            match["last_action_at"] = time.time()
-            response = {
-                "round": match.get("round", 1),
-                "waiting_for": None,
-                "phase": "finished",
+            _bump_scoreboard(match, str(result.get("winner", "draw")))
+            round_result = {
+                "round": round_no,
+                "attack": _action_content(challenger_action),
+                "defend": _action_content(defender_action),
+                "result": result,
             }
+            match.setdefault("round_results", []).append(round_result)
+            match["latest_round_result"] = round_result
+
+            total_rounds = int(match.get("total_rounds", 1))
+            if round_no < total_rounds:
+                match["round"] = round_no + 1
+                match["phase"] = PHASE_WAITING_ATTACK
+                match["status"] = "in_progress"
+                match["result"] = None
+                # 下一轮重新收集攻防包
+                match["challenger"]["action"] = None
+                match["defender"]["action"] = None
+                response = {
+                    "round": match.get("round", 1),
+                    "total_rounds": total_rounds,
+                    "waiting_for": "challenger",
+                    "phase": PHASE_WAITING_ATTACK,
+                    "previous_round_result": round_result,
+                    "scoreboard": match.get("scoreboard", {}),
+                }
+            else:
+                _finalize_multi_round_result(match)
+                response = {
+                    "round": round_no,
+                    "total_rounds": total_rounds,
+                    "waiting_for": None,
+                    "phase": PHASE_FINISHED,
+                    "result": match.get("result"),
+                    "scoreboard": match.get("scoreboard", {}),
+                }
         else:
-            waiting_for = "defender" if not defender_action else "challenger"
+            waiting_for = "defender" if role == "challenger" else "challenger"
+            match["phase"] = PHASE_WAITING_DEFENSE if waiting_for == "defender" else PHASE_WAITING_ATTACK
             match["status"] = "waiting"
             response = {
-                "round": match.get("round", 1),
+                "round": round_no,
+                "total_rounds": int(match.get("total_rounds", 1)),
                 "waiting_for": waiting_for,
-                "phase": "defense" if waiting_for == "defender" else "attack",
+                "phase": match.get("phase"),
             }
 
         _save_state(state)
@@ -367,11 +579,14 @@ def arena_action():
 @app.get("/arena/state/<match_id>")
 def arena_state(match_id: str):
     """查询指定比赛的完整状态。"""
-    state = _load_state()
-    match = _find_match(state, match_id)
-    if not match:
-        return jsonify({"error": "match_id 不存在"}), 404
-    return jsonify(match)
+    with FileLock(LOCK_FILE):
+        state = _load_state()
+        match = _find_match(state, match_id)
+        if not match:
+            return jsonify({"error": "match_id 不存在"}), 404
+        _normalize_match(match)
+        _save_state(state)
+        return jsonify(match)
 
 
 @app.post("/arena/judge")
@@ -387,6 +602,9 @@ def arena_judge():
     winner = str(payload.get("winner", "")).strip()
     reason = str(payload.get("reason", "")).strip() or "裁判判定"
 
+    if not _is_valid_match_id(match_id):
+        return jsonify({"error": "match_id 格式无效，请传入真实 UUID"}), 400
+
     if not join_key.startswith("arc_referee_"):
         return jsonify({"error": "裁判 join_key 必须以 arc_referee_ 开头"}), 400
 
@@ -399,12 +617,24 @@ def arena_judge():
         if not match:
             return jsonify({"error": "match_id 不存在"}), 404
 
+        _normalize_match(match)
+        _bump_scoreboard(match, winner)
+        match.setdefault("round_results", []).append(
+            {
+                "round": int(match.get("round", 1)),
+                "attack": _action_content(match.get("challenger", {}).get("action")),
+                "defend": _action_content(match.get("defender", {}).get("action")),
+                "result": {"winner": winner, "reason": reason, "auto_judged": False},
+            }
+        )
+
         match["result"] = {
             "winner": winner,
             "reason": reason,
             "auto_judged": False,
         }
         match["status"] = "finished"
+        match["phase"] = PHASE_FINISHED
         match["last_action_at"] = time.time()
         _save_state(state)
 

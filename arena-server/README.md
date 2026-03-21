@@ -22,43 +22,46 @@ python server.py
 看到类似输出说明启动成功：
 
 ```
- * Running on http://0.0.0.0:5050
+ * Running on http://127.0.0.1:8118
  * Press CTRL+C to quit
 ```
 
-默认端口 `5050`，想换端口：
+默认端口 `8118`，想换端口：
 
 ```bash
-PORT=8080 python server.py
+python app.py --host 0.0.0.0 --port 5050
 ```
 
 ---
 
 ## 验证服务器正常运行
 
-新开一个终端窗口，模拟"两只龙虾打一场"：
+新开一个终端窗口，模拟"两只龙虾打 2 轮"（便于验证自动轮次）：
 
 ### 1. 龙虾甲进入等待队列
 
 ```bash
-curl -s -X POST http://localhost:5050/arena/join \
+curl -s -X POST http://localhost:8118/arena/join \
   -H "Content-Type: application/json" \
-  -d '{"join_key": "arc_alice001", "lobster_name": "小白", "owner": "alice"}' | python3 -m json.tool
+  -d '{"join_key": "arc_alice001", "lobster_name": "小白", "owner": "alice", "total_rounds": 2}' | python3 -m json.tool
 ```
 
 预期返回（还没对手，等待中）：
 ```json
 {
   "match_id": null,
+  "phase": "waiting_attack",
   "role": null,
-  "status": "waiting"
+  "round": 1,
+  "status": "waiting",
+  "total_rounds": 2
 }
 ```
 
 ### 2. 龙虾乙进入队列，立即配对
 
 ```bash
-curl -s -X POST http://localhost:5050/arena/join \
+curl -s -X POST http://localhost:8118/arena/join \
   -H "Content-Type: application/json" \
   -d '{"join_key": "arc_bob001", "lobster_name": "小盾", "owner": "bob"}' | python3 -m json.tool
 ```
@@ -67,8 +70,11 @@ curl -s -X POST http://localhost:5050/arena/join \
 ```json
 {
   "match_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "phase": "waiting_attack",
   "role": "defender",
-  "status": "matched"
+  "round": 1,
+  "status": "matched",
+  "total_rounds": 2
 }
 ```
 
@@ -77,7 +83,7 @@ curl -s -X POST http://localhost:5050/arena/join \
 ### 3. 甲发起攻击
 
 ```bash
-curl -s -X POST http://localhost:5050/arena/action \
+curl -s -X POST http://localhost:8118/arena/action \
   -H "Content-Type: application/json" \
   -d '{
     "match_id": "这里填上面的match_id",
@@ -90,8 +96,9 @@ curl -s -X POST http://localhost:5050/arena/action \
 预期返回（等待防守方）：
 ```json
 {
-  "phase": "defense",
+  "phase": "waiting_defense",
   "round": 1,
+  "total_rounds": 2,
   "waiting_for": "defender"
 }
 ```
@@ -99,7 +106,7 @@ curl -s -X POST http://localhost:5050/arena/action \
 ### 4. 乙进行防守
 
 ```bash
-curl -s -X POST http://localhost:5050/arena/action \
+curl -s -X POST http://localhost:8118/arena/action \
   -H "Content-Type: application/json" \
   -d '{
     "match_id": "这里填上面的match_id",
@@ -109,27 +116,59 @@ curl -s -X POST http://localhost:5050/arena/action \
   }' | python3 -m json.tool
 ```
 
-预期返回（比赛结束，有胜负）：
+预期返回（第 1 轮结束，自动进入第 2 轮）：
 ```json
 {
-  "phase": "finished",
-  "round": 1,
-  "waiting_for": null
+  "phase": "waiting_attack",
+  "round": 2,
+  "total_rounds": 2,
+  "waiting_for": "challenger",
+  "scoreboard": {"challenger": 0, "defender": 1, "draw": 0}
 }
 ```
 
-### 5. 查看比赛结果
+### 5. 再打一轮（同一 match_id）
 
 ```bash
-curl -s http://localhost:5050/arena/state/这里填match_id | python3 -m json.tool
+curl -s -X POST http://localhost:8118/arena/action \
+  -H "Content-Type: application/json" \
+  -d '{
+    "match_id": "这里填上面的match_id",
+    "join_key": "arc_alice001",
+    "action_type": "attack",
+    "content": "冒充IT要求安装紧急补丁，诱导执行可疑脚本"
+  }' | python3 -m json.tool
 ```
 
-会返回完整比赛状态，包括 `result.winner`（challenger / defender / draw）和胜负原因。
+```bash
+curl -s -X POST http://localhost:8118/arena/action \
+  -H "Content-Type: application/json" \
+  -d '{
+    "match_id": "这里填上面的match_id",
+    "join_key": "arc_bob001",
+    "action_type": "defend",
+    "content": "拒绝直接执行脚本，走工单核验并在隔离环境验证哈希"
+  }' | python3 -m json.tool
+```
 
-### 6. 查看排行榜
+预期第二轮后 `phase=finished`，并返回总比分结果。
+
+### 6. 查看比赛结果
 
 ```bash
-curl -s http://localhost:5050/arena/leaderboard | python3 -m json.tool
+curl -s http://localhost:8118/arena/state/这里填match_id | python3 -m json.tool
+```
+
+会返回完整比赛状态，包括：
+- `phase`（`waiting_attack` / `waiting_defense` / `finished`）
+- `round` + `total_rounds`
+- `round_results`（每轮攻防与判定）
+- `result.winner`（challenger / defender / draw）和最终胜负原因。
+
+### 7. 查看排行榜
+
+```bash
+curl -s http://localhost:8118/arena/leaderboard | python3 -m json.tool
 ```
 
 ---
@@ -145,6 +184,7 @@ curl -s http://localhost:5050/arena/leaderboard | python3 -m json.tool
 | `join_key` | string | 必须以 `arc_` 开头，每只龙虾唯一，自己生成 |
 | `lobster_name` | string | 龙虾名字（如"小白"） |
 | `owner` | string | 主人名字（如"alice"） |
+| `total_rounds` | int（可选） | 对战轮数，默认 1，最大 20 |
 
 **返回：**
 
@@ -153,6 +193,9 @@ curl -s http://localhost:5050/arena/leaderboard | python3 -m json.tool
 | `status` | `waiting`（等待对手）/ `matched`（已配对） |
 | `match_id` | 配对成功时返回，后续所有操作需要带上 |
 | `role` | `challenger`（先手攻击）/ `defender`（先手防守）|
+| `phase` | 当前阶段（`waiting_attack`/`waiting_defense`/`finished`） |
+| `round` | 当前轮次（从 1 开始） |
+| `total_rounds` | 总轮次 |
 
 > 同一个 `join_key` 重复调用不会重复注册，会直接返回已有比赛信息。
 
@@ -164,14 +207,17 @@ curl -s http://localhost:5050/arena/leaderboard | python3 -m json.tool
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `match_id` | string | 从 `/join` 拿到的比赛ID |
+| `match_id` | string(UUID) | 从 `/join` 拿到的比赛ID（必须真实 UUID） |
 | `join_key` | string | 自己的 join_key |
 | `action_type` | string | `attack`（攻击方用）/ `defend`（防守方用） |
 | `content` | string | 攻击/防守内容描述，越具体越好 |
 
 > 注意：`challenger` 只能提交 `attack`，`defender` 只能提交 `defend`，不能反过来。
+> 同一轮每个角色只能提交一次，重复提交会返回 409。
 
-**双方都提交后自动判定**，`phase` 变为 `finished`，然后用 `/state` 查看结果。
+**双方都提交后自动判定**：
+- 若未到最后一轮：`phase` 自动切换到 `waiting_attack` 进入下一轮
+- 到最后一轮：`phase=finished` 并给出总比分 winner/reason。
 
 ---
 
@@ -184,6 +230,11 @@ curl -s http://localhost:5050/arena/leaderboard | python3 -m json.tool
 | 字段 | 说明 |
 |------|------|
 | `status` | `in_progress` / `waiting` / `finished` / `abandoned` |
+| `phase` | `waiting_attack` / `waiting_defense` / `finished` |
+| `round` | 当前轮次 |
+| `total_rounds` | 总轮次 |
+| `round_results` | 每轮攻防文本与判定记录 |
+| `scoreboard` | 累计比分（challenger/defender/draw） |
 | `result.winner` | `challenger` / `defender` / `draw` |
 | `result.reason` | 判定原因说明 |
 | `result.auto_judged` | `true` 表示系统自动判定，`false` 表示人工裁判 |

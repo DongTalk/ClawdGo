@@ -53,7 +53,8 @@
     "12-dimension-scoring",
     "h-mode-duel",
     "arena-server-integration",
-    "dual-lobster-combat"
+    "dual-lobster-combat",
+    "duel-auto-polling"
   ],
   "triggers": [
     "clawdgo",
@@ -83,6 +84,9 @@
     "对抗训练",
     "红蓝对抗",
     "clawdgo duel",
+    "clawdgo duel auto tick",
+    "clawdgo duel auto start",
+    "clawdgo duel auto stop",
     "clawdgo duel feishu",
     "clawdgo h",
     "对抗竞技场",
