@@ -353,6 +353,12 @@
       const OW_H = 28;
       const IN_W = 20;
       const IN_H = 14;
+      const DEVICE_PIXEL_RATIO = Math.max(1, Math.round(window.devicePixelRatio || 1));
+
+      function quantizePixelZoom(rawZoom, minZoom = 1) {
+        const target = Math.max(rawZoom, minZoom);
+        return Math.ceil(target * SCALE) / SCALE;
+      }
 
       const INDOOR_ROOMS = new Set(["home", "cafe", "office", "temple", "bank", "shelter"]);
 
@@ -756,7 +762,7 @@
           const worldH = OW_H * TILE * SCALE;
           const vw = this.scale.width;
           const vh = this.scale.height;
-          const zoom = Math.max(vw / worldW, vh / worldH, 1);
+          const zoom = quantizePixelZoom(Math.max(vw / worldW, vh / worldH, 1), 1);
           this.cameras.main.setZoom(zoom);
         }
 
@@ -1296,7 +1302,7 @@
           const worldH = IN_H * TILE * SCALE;
           const vw = this.scale.width;
           const vh = this.scale.height;
-          const zoom = Math.max(vw / worldW, vh / worldH);
+          const zoom = quantizePixelZoom(Math.max(vw / worldW, vh / worldH), 1);
           this.cameras.main.setZoom(zoom);
           this.cameras.main.setBounds(0, 0, worldW, worldH);
           this.cameras.main.centerOn(worldW / 2, worldH / 2);
@@ -1882,12 +1888,14 @@
         backgroundColor: "#050d1a",
         pixelArt: true,
         antialias: false,
+        resolution: DEVICE_PIXEL_RATIO,
         scene: [BootScene, OverworldScene, IndoorScene, UIScene],
         scale: {
           mode: Phaser.Scale.RESIZE,
           autoCenter: Phaser.Scale.CENTER_BOTH
         },
         render: {
+          autoRound: true,
           roundPixels: true
         }
       });

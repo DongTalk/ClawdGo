@@ -46,3 +46,7 @@ Original prompt: 请读取、理解并执行以下任务文档：/Users/ronnie/l
   - [x] 户外相机 resize 自适应（cover 缩放），进一步降低黑边风险
   - [x] 角色行走新增像素步态起伏（不再滑行）
   - [x] 字体许可文件与 README 资源说明补齐
+- [x] 第五轮清晰度修复（2026-03-21）：
+  - [x] 修复像素发糊根因：Overworld/Indoor 相机缩放改为按 `0.5` 档位量化，避免非整数像素缩放
+  - [x] Phaser 渲染分辨率切换到 `devicePixelRatio`，修复 Retina/HiDPI 下整体模糊
+  - [x] 保持 `pixelArt + antialias:false + roundPixels + autoRound` 组合，降低锯齿和抖动
