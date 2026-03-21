@@ -24,3 +24,7 @@ Original prompt: 请读取、理解并执行以下任务文档：/Users/ronnie/l
 ## 对标补充（Star-Office-UI）
 - [x] 拉取并对标 `ringhyacinth/Star-Office-UI`
 - [x] 采用其关键稳定策略：`vendor/phaser-3.80.1.min.js` 本地化加载，避免网络/CDN导致空白
+- [x] 对标 Star-Office-UI 完成第一轮视觉重构：
+  - [x] Overworld 重建为高密度图层（地形噪声 + 建筑预制 + 围栏 + 阴影 + 树木边界）
+  - [x] 室内场景加入 Kenney sample 背景叠加和房间氛围色
+  - [x] 小白角色帧切换到 tiny-dungeon 可用角色帧，避免错误贴图

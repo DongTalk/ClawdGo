@@ -344,14 +344,14 @@
       const INDOOR_ROOMS = new Set(["home", "cafe", "office", "temple", "bank", "shelter"]);
 
       const BUILDINGS = {
-        home: { id: "home", icon: "🏠", name: "小白的家", tx: 3, ty: 3, tw: 6, th: 5, roomName: "小白的家" },
-        cafe: { id: "cafe", icon: "☕", name: "咖啡厅", tx: 3, ty: 14, tw: 5, th: 4, roomName: "咖啡厅" },
-        office: { id: "office", icon: "🏢", name: "职场", tx: 14, ty: 2, tw: 7, th: 6, roomName: "职场" },
-        market: { id: "market", icon: "🛒", name: "网购广场", tx: 12, ty: 12, tw: 6, th: 5, roomName: "网购广场" },
-        social: { id: "social", icon: "📱", name: "社交广场", tx: 23, ty: 8, tw: 5, th: 5, roomName: "社交广场" },
-        bank: { id: "bank", icon: "🏦", name: "网络银行", tx: 22, ty: 18, tw: 6, th: 4, roomName: "网络银行" },
-        temple: { id: "temple", icon: "🏛", name: "神庙区", tx: 13, ty: 3, tw: 5, th: 6, roomName: "神庙区" },
-        shelter: { id: "shelter", icon: "🛡", name: "安全屋", tx: 32, ty: 12, tw: 5, th: 4, roomName: "安全屋" }
+        home: { id: "home", icon: "🏠", name: "小白的家", tx: 4, ty: 4, tw: 4, th: 4, roomName: "小白的家" },
+        cafe: { id: "cafe", icon: "☕", name: "咖啡厅", tx: 4, ty: 15, tw: 4, th: 4, roomName: "咖啡厅" },
+        office: { id: "office", icon: "🏢", name: "职场", tx: 14, ty: 3, tw: 5, th: 5, roomName: "职场" },
+        market: { id: "market", icon: "🛒", name: "网购广场", tx: 13, ty: 13, tw: 5, th: 4, roomName: "网购广场" },
+        social: { id: "social", icon: "📱", name: "社交广场", tx: 23, ty: 8, tw: 4, th: 4, roomName: "社交广场" },
+        bank: { id: "bank", icon: "🏦", name: "网络银行", tx: 23, ty: 19, tw: 5, th: 4, roomName: "网络银行" },
+        temple: { id: "temple", icon: "🏛", name: "神庙区", tx: 15, ty: 4, tw: 4, th: 5, roomName: "神庙区" },
+        shelter: { id: "shelter", icon: "🛡", name: "安全屋", tx: 32, ty: 12, tw: 4, th: 4, roomName: "安全屋" }
       };
 
       const LOCATION_MAP = {
@@ -664,7 +664,9 @@
             frameWidth: 16,
             frameHeight: 16
           });
-          this.load.spritesheet("xiaobai", "assets/kenney/tiny-tales/character_0011.png", {
+          this.load.image("town-sample", "assets/kenney/tiny-town/sample.png");
+          this.load.image("dungeon-sample", "assets/kenney/tiny-dungeon/sample.png");
+          this.load.spritesheet("xiaobai", "assets/kenney/tiny-dungeon/tilemap_packed.png", {
             frameWidth: 16,
             frameHeight: 16
           });
@@ -681,15 +683,15 @@
             });
           };
 
-          makeAnim("walk-down", [104, 105, 106], 8);
-          makeAnim("walk-side", [104, 105, 106], 8);
-          makeAnim("walk-up", [116, 117, 118], 8);
+          makeAnim("walk-down", [110, 110, 110], 8);
+          makeAnim("walk-side", [110, 110, 110], 8);
+          makeAnim("walk-up", [110, 110, 110], 8);
 
           if (!this.anims.exists("idle-down")) {
-            this.anims.create({ key: "idle-down", frames: [{ key: "xiaobai", frame: 104 }], frameRate: 1, repeat: -1 });
+            this.anims.create({ key: "idle-down", frames: [{ key: "xiaobai", frame: 110 }], frameRate: 1, repeat: -1 });
           }
           if (!this.anims.exists("idle-up")) {
-            this.anims.create({ key: "idle-up", frames: [{ key: "xiaobai", frame: 116 }], frameRate: 1, repeat: -1 });
+            this.anims.create({ key: "idle-up", frames: [{ key: "xiaobai", frame: 110 }], frameRate: 1, repeat: -1 });
           }
 
           this.scene.start("OverworldScene");
@@ -725,21 +727,49 @@
         }
 
         buildMap() {
-          const floorTile = 0;
-          const floorAlt = 1;
-          const roadTile = 24;
-          const roadAlt = 25;
+          this.add.image(OW_W * TILE, OW_H * TILE, "town-sample")
+            .setDisplaySize(OW_W * TILE * SCALE + 180, OW_H * TILE * SCALE + 120)
+            .setAlpha(0.2)
+            .setDepth(0);
 
-          const ground = buildGrid(OW_W, OW_H, floorTile);
+          const ground = buildGrid(OW_W, OW_H, 0);
           const road = buildGrid(OW_W, OW_H, -1);
           const decor = buildGrid(OW_W, OW_H, -1);
-          const buildings = buildGrid(OW_W, OW_H, -1);
+          const structures = buildGrid(OW_W, OW_H, -1);
+
+          const roadMask = Array.from({ length: OW_H }, () => Array(OW_W).fill(false));
+          const pathTiles = [12, 13, 14, 24, 25, 26, 36, 37, 38, 39, 40, 41, 42];
+          const treeTiles = [3, 4, 5, 9, 10, 11, 15, 16, 17, 21, 22, 23, 27, 28, 29, 33, 34, 35];
 
           for (let y = 0; y < OW_H; y += 1) {
             for (let x = 0; x < OW_W; x += 1) {
-              if ((x + y) % 5 === 0) ground[y][x] = floorAlt;
+              const noise = (x * 17 + y * 31 + x * y * 3) % 11;
+              ground[y][x] = noise < 2 ? 1 : 0;
+              if (noise === 10) ground[y][x] = 2;
             }
           }
+
+          const markRoad = (tx, ty) => {
+            if (tx < 0 || ty < 0 || tx >= OW_W || ty >= OW_H) return;
+            roadMask[ty][tx] = true;
+          };
+
+          const paintRoadMask = (x1, y1, x2, y2, width = 1) => {
+            const half = Math.floor(width / 2);
+            if (x1 === x2) {
+              const [from, to] = y1 <= y2 ? [y1, y2] : [y2, y1];
+              for (let y = from; y <= to; y += 1) {
+                for (let w = -half; w <= half; w += 1) markRoad(x1 + w, y);
+              }
+              return;
+            }
+            if (y1 === y2) {
+              const [from, to] = x1 <= x2 ? [x1, x2] : [x2, x1];
+              for (let x = from; x <= to; x += 1) {
+                for (let w = -half; w <= half; w += 1) markRoad(x, y1 + w);
+              }
+            }
+          };
 
           const links = [
             ["home", "cafe"],
@@ -756,57 +786,140 @@
           for (const [fromId, toId] of links) {
             const from = getEntranceTxTy(fromId);
             const to = getEntranceTxTy(toId);
-            paintRoad(road, from.tx, from.ty, from.tx, to.ty, 2, roadTile);
-            paintRoad(road, from.tx, to.ty, to.tx, to.ty, 2, roadAlt);
+            paintRoadMask(from.tx, from.ty, from.tx, to.ty, 1);
+            paintRoadMask(from.tx, to.ty, to.tx, to.ty, 1);
+          }
+
+          for (let y = 0; y < OW_H; y += 1) {
+            for (let x = 0; x < OW_W; x += 1) {
+              if (!roadMask[y][x]) continue;
+              const n = y > 0 && roadMask[y - 1][x];
+              const s = y < OW_H - 1 && roadMask[y + 1][x];
+              const w = x > 0 && roadMask[y][x - 1];
+              const e = x < OW_W - 1 && roadMask[y][x + 1];
+
+              if ((n && s && e && w) || ((n || s) && (e || w))) {
+                road[y][x] = 37;
+              } else if (n && s) {
+                road[y][x] = [13, 25, 37][(x + y) % 3];
+              } else if (e && w) {
+                road[y][x] = [24, 25, 26][(x + y) % 3];
+              } else if ((n && e) || (s && w)) {
+                road[y][x] = [14, 38, 42][(x + y) % 3];
+              } else if ((n && w) || (s && e)) {
+                road[y][x] = [12, 36, 40][(x + y) % 3];
+              } else {
+                road[y][x] = pathTiles[(x * 5 + y * 7) % pathTiles.length];
+              }
+            }
           }
 
           const styleMap = {
-            home: { roof: 49, wall: 37, door: 61 },
-            cafe: { roof: 50, wall: 38, door: 61 },
-            office: { roof: 52, wall: 40, door: 61 },
-            market: { roof: 53, wall: 41, door: 61 },
-            social: { roof: 51, wall: 39, door: 61 },
-            bank: { roof: 54, wall: 42, door: 61 },
-            temple: { roof: 55, wall: 43, door: 61 },
-            shelter: { roof: 56, wall: 44, door: 61 }
+            home: { roof: 49, wall: 37, door: 74 },
+            cafe: { roof: 53, wall: 41, door: 74 },
+            office: { roof: 50, wall: 38, door: 74 },
+            market: { roof: 54, wall: 42, door: 74 },
+            social: { roof: 55, wall: 43, door: 74 },
+            bank: { roof: 52, wall: 40, door: 74 },
+            temple: { roof: 111, wall: 124, door: 126 },
+            shelter: { roof: 51, wall: 39, door: 74 }
           };
 
-          Object.values(BUILDINGS).forEach((b) => {
+          const put = (layer, tx, ty, tile) => {
+            if (tx < 0 || ty < 0 || tx >= OW_W || ty >= OW_H) return;
+            layer[ty][tx] = tile;
+          };
+
+          const paintFenceRect = (tx, ty, tw, th) => {
+            for (let x = tx; x < tx + tw; x += 1) {
+              put(decor, x, ty, x === tx ? 44 : x === tx + tw - 1 ? 46 : 45);
+              put(decor, x, ty + th - 1, x === tx ? 68 : x === tx + tw - 1 ? 70 : 69);
+            }
+            for (let y = ty + 1; y < ty + th - 1; y += 1) {
+              put(decor, tx, y, 56);
+              put(decor, tx + tw - 1, y, 58);
+            }
+          };
+
+          const paintHouse = (tx, ty, w, style, withDoor = true) => {
+            for (let x = 0; x < w; x += 1) {
+              put(structures, tx + x, ty, style.roof);
+              put(structures, tx + x, ty + 1, style.wall);
+              put(structures, tx + x, ty + 2, style.wall);
+            }
+            if (withDoor) {
+              put(structures, tx + Math.floor(w / 2), ty + 2, style.door);
+            }
+          };
+
+          Object.values(BUILDINGS).forEach((b, i) => {
+            const lotX = b.tx;
+            const lotY = b.ty;
+            const lotW = b.tw;
+            const lotH = b.th;
             const style = styleMap[b.id] || styleMap.home;
-            for (let yy = 0; yy < b.th; yy += 1) {
-              for (let xx = 0; xx < b.tw; xx += 1) {
-                const tx = b.tx + xx;
-                const ty = b.ty + yy;
-                if (yy < 2) buildings[ty][tx] = style.roof;
-                else buildings[ty][tx] = style.wall;
+
+            for (let y = lotY; y < lotY + lotH; y += 1) {
+              for (let x = lotX; x < lotX + lotW; x += 1) {
+                ground[y][x] = [24, 25, 36, 37, 38, 39, 40][(x + y + i) % 7];
               }
             }
-            const doorX = b.tx + Math.floor(b.tw / 2);
-            const doorY = b.ty + b.th - 1;
-            buildings[doorY][doorX] = style.door;
+
+            paintFenceRect(lotX - 1, lotY - 1, lotW + 2, lotH + 2);
+
+            if (b.id === "temple") {
+              const cx = lotX + Math.floor(lotW / 2) - 1;
+              put(structures, cx, lotY + 1, 111);
+              put(structures, cx + 1, lotY + 1, 112);
+              put(structures, cx + 2, lotY + 1, 113);
+              put(structures, cx, lotY + 2, 123);
+              put(structures, cx + 1, lotY + 2, 124);
+              put(structures, cx + 2, lotY + 2, 125);
+              put(structures, cx, lotY + 3, 123);
+              put(structures, cx + 1, lotY + 3, 126);
+              put(structures, cx + 2, lotY + 3, 125);
+              put(decor, cx - 1, lotY + 3, 93);
+              put(decor, cx + 3, lotY + 3, 93);
+            } else if (b.id === "bank") {
+              const bx = lotX + 1;
+              const by = lotY + 1;
+              paintHouse(bx, by, Math.max(3, lotW - 2), style, true);
+              put(decor, bx - 1, by + 1, 104);
+              put(decor, bx + lotW - 2, by + 1, 104);
+              put(decor, bx + Math.floor((lotW - 2) / 2), by - 1, 94);
+            } else if (b.id === "shelter") {
+              const sx = lotX + Math.floor((lotW - 3) / 2);
+              paintHouse(sx, lotY + 1, 3, style, true);
+              put(decor, sx + 1, lotY + 4, 93);
+              put(decor, sx - 1, lotY + 3, 105);
+              put(decor, sx + 3, lotY + 3, 106);
+            } else {
+              const bw = b.id === "office" || b.id === "market" ? 4 : 3;
+              const bx = b.tx + Math.floor((b.tw - bw) / 2);
+              paintHouse(bx, b.ty + 1, bw, style, true);
+              if (b.id === "cafe") put(decor, bx + bw - 1, b.ty + 4, 95);
+              if (b.id === "home") put(decor, bx - 1, b.ty + 3, 105);
+              if (b.id === "office") put(decor, bx + bw, b.ty + 3, 103);
+            }
+
+            const treeLeft = lotX - 2;
+            const treeRight = lotX + lotW + 1;
+            put(decor, treeLeft, lotY + 1, treeTiles[(i * 3 + 1) % treeTiles.length]);
+            put(decor, treeRight, lotY + 1, treeTiles[(i * 3 + 2) % treeTiles.length]);
+            put(decor, lotX + Math.floor(lotW / 2), lotY - 2, treeTiles[(i * 3 + 3) % treeTiles.length]);
           });
 
-          const treeTiles = [2, 3, 14, 15, 16, 17];
-          const benchTiles = [88, 89];
-          const lampTiles = [58, 59];
-          const flowerTiles = [80, 81, 82, 83];
-
           for (let x = 1; x < OW_W - 1; x += 2) {
-            decor[1][x] = treeTiles[x % treeTiles.length];
-            decor[OW_H - 2][x] = treeTiles[(x + 3) % treeTiles.length];
+            put(decor, x, 1, treeTiles[(x + 1) % treeTiles.length]);
+            put(decor, x, OW_H - 2, treeTiles[(x + 7) % treeTiles.length]);
           }
           for (let y = 2; y < OW_H - 2; y += 3) {
-            decor[y][1] = treeTiles[(y + 1) % treeTiles.length];
-            decor[y][OW_W - 2] = treeTiles[(y + 2) % treeTiles.length];
+            put(decor, 1, y, treeTiles[(y + 3) % treeTiles.length]);
+            put(decor, OW_W - 2, y, treeTiles[(y + 6) % treeTiles.length]);
           }
 
           [[10, 10], [20, 10], [30, 10], [20, 18], [31, 18]].forEach(([x, y], i) => {
-            decor[y][x] = lampTiles[i % lampTiles.length];
-          });
-
-          [[9, 18], [17, 19], [27, 5], [34, 6]].forEach(([x, y], i) => {
-            decor[y][x] = benchTiles[i % benchTiles.length];
-            decor[y + 1][x] = flowerTiles[(i + 1) % flowerTiles.length];
+            put(decor, x, y, [57, 58, 59][i % 3]);
           });
 
           const map = this.make.tilemap({
@@ -819,8 +932,8 @@
 
           this.groundLayer = map.createBlankLayer("ground", tileset, 0, 0);
           this.roadLayer = map.createBlankLayer("road", tileset, 0, 0);
-          this.decorLayer = map.createBlankLayer("decor", tileset, 0, 0);
           this.buildingLayer = map.createBlankLayer("building", tileset, 0, 0);
+          this.decorLayer = map.createBlankLayer("decor", tileset, 0, 0);
 
           const applyData = (layer, data) => {
             for (let y = 0; y < data.length; y += 1) {
@@ -833,29 +946,37 @@
 
           applyData(this.groundLayer, ground);
           applyData(this.roadLayer, road);
+          applyData(this.buildingLayer, structures);
           applyData(this.decorLayer, decor);
-          applyData(this.buildingLayer, buildings);
 
-          [this.groundLayer, this.roadLayer, this.decorLayer, this.buildingLayer].forEach((layer) => {
+          [this.groundLayer, this.roadLayer, this.buildingLayer, this.decorLayer].forEach((layer) => {
             layer.setScale(SCALE);
             layer.setDepth(1);
           });
 
           this.roadLayer.setDepth(2);
-          this.decorLayer.setDepth(3);
           this.buildingLayer.setDepth(4);
+          this.decorLayer.setDepth(5);
+
+          const shadow = this.add.graphics().setDepth(3);
+          shadow.fillStyle(0x000000, 0.2);
+          for (const b of Object.values(BUILDINGS)) {
+            const cx = (b.tx + b.tw / 2) * TILE * SCALE;
+            const cy = (b.ty + b.th + 0.3) * TILE * SCALE;
+            shadow.fillEllipse(cx, cy, b.tw * TILE * 1.2, 16);
+          }
         }
 
         buildBuildingsLabel() {
           for (const b of Object.values(BUILDINGS)) {
-            const p = tileToWorld(b.tx + b.tw / 2, b.ty - 0.3);
+            const p = tileToWorld(b.tx + b.tw / 2, b.ty - 0.5);
             this.add.text(p.x, p.y, `${b.icon} ${b.name}`, {
               fontFamily: "monospace",
               fontSize: "12px",
-              color: "#ffffff",
-              stroke: "#000000",
-              strokeThickness: 3
-            }).setOrigin(0.5).setDepth(12);
+              color: "#fff9e4",
+              stroke: "#3b2924",
+              strokeThickness: 4
+            }).setOrigin(0.5).setDepth(15);
           }
         }
 
@@ -863,7 +984,7 @@
           const start = getEntranceTxTy("home");
           const world = tileToWorld(start.tx, start.ty);
 
-          this.player = this.add.sprite(0, 0, "xiaobai", 104).setScale(2).setDepth(30);
+          this.player = this.add.sprite(0, 0, "xiaobai", 110).setScale(2).setDepth(30);
           this.player.setOrigin(0.5, 0.75);
           this.player.play("idle-down");
 
@@ -1055,28 +1176,48 @@
         }
 
         buildRoom(roomId) {
+          const roomTint = {
+            home: 0xfff3dc,
+            cafe: 0xffe9d6,
+            office: 0xdfeeff,
+            market: 0xe2ffe8,
+            social: 0xf2e1ff,
+            bank: 0xf7f0d8,
+            temple: 0xffe8b0,
+            shelter: 0xd4ffe7
+          };
+          const bgTexture = roomId === "temple" || roomId === "bank" ? "dungeon-sample" : "town-sample";
+          this.add.image(IN_W * TILE, IN_H * TILE, bgTexture)
+            .setDisplaySize(IN_W * TILE * SCALE + 120, IN_H * TILE * SCALE + 110)
+            .setAlpha(0.4)
+            .setTint(roomTint[roomId] || 0xffffff)
+            .setDepth(0);
+          this.add.rectangle(IN_W * TILE, IN_H * TILE, IN_W * TILE * SCALE + 8, IN_H * TILE * SCALE + 8, 0x08101a, 0.34)
+            .setStrokeStyle(2, 0xffffff, 0.08)
+            .setDepth(1);
+
           const floor = buildGrid(IN_W, IN_H, 0);
           const walls = buildGrid(IN_W, IN_H, -1);
           const furniture = buildGrid(IN_W, IN_H, -1);
 
           for (let y = 0; y < IN_H; y += 1) {
             for (let x = 0; x < IN_W; x += 1) {
-              if ((x + y) % 4 === 0) floor[y][x] = 1;
+              floor[y][x] = [48, 49, 50, 51, 52, 53][(x * 3 + y * 5) % 6];
             }
           }
 
           for (let x = 0; x < IN_W; x += 1) {
-            walls[0][x] = 24;
-            walls[IN_H - 1][x] = 24;
+            walls[0][x] = 4;
+            walls[IN_H - 1][x] = 39;
           }
           for (let y = 0; y < IN_H; y += 1) {
-            walls[y][0] = 24;
-            walls[y][IN_W - 1] = 24;
+            walls[y][0] = 14;
+            walls[y][IN_W - 1] = 18;
           }
 
           const p = {
             home: () => {
-              paintRect(floor, 1, 1, 18, 12, 2);
+              paintRect(floor, 1, 1, 18, 12, 49);
               paintRect(furniture, 2, 2, 2, 3, 80);
               paintRect(furniture, 3, 7, 3, 2, 81);
               paintRect(furniture, 13, 2, 3, 2, 82);
@@ -1088,7 +1229,7 @@
               this.tweens.add({ targets: cat, scaleX: 1.08, scaleY: 1.08, yoyo: true, repeat: -1, duration: 900 });
             },
             cafe: () => {
-              paintRect(floor, 1, 1, 18, 12, 4);
+              paintRect(floor, 1, 1, 18, 12, 50);
               paintRect(furniture, 2, 3, 5, 2, 85);
               paintRect(furniture, 7, 6, 3, 2, 86);
               paintRect(furniture, 12, 6, 3, 2, 86);
@@ -1099,7 +1240,7 @@
               this.tweens.add({ targets: wifi, scaleX: 1.8, scaleY: 1.8, alpha: 0, duration: 1200, repeat: -1 });
             },
             office: () => {
-              paintRect(floor, 1, 1, 18, 12, 6);
+              paintRect(floor, 1, 1, 18, 12, 51);
               paintRect(furniture, 2, 3, 3, 2, 90);
               paintRect(furniture, 6, 3, 3, 2, 90);
               paintRect(furniture, 10, 3, 3, 2, 90);
@@ -1110,7 +1251,7 @@
               this.add.text(472, 62, "⚠️ 安全提醒", { fontFamily: "monospace", fontSize: "11px", color: "#ffde96" }).setDepth(18);
             },
             temple: () => {
-              paintRect(floor, 1, 1, 18, 12, 8);
+              paintRect(floor, 1, 1, 18, 12, 52);
               paintRect(furniture, 4, 2, 1, 9, 93);
               paintRect(furniture, 15, 2, 1, 9, 93);
               paintRect(furniture, 9, 5, 2, 2, 94);
@@ -1133,7 +1274,7 @@
               gold.setDepth(20);
             },
             bank: () => {
-              paintRect(floor, 1, 1, 18, 12, 10);
+              paintRect(floor, 1, 1, 18, 12, 53);
               paintRect(furniture, 2, 3, 14, 2, 96);
               paintRect(furniture, 4, 8, 2, 2, 97);
               paintRect(furniture, 7, 8, 2, 2, 97);
@@ -1142,7 +1283,7 @@
               this.add.text(190, 36, "🏦 网络银行", { fontFamily: "monospace", fontSize: "12px", color: "#f6f2dc" }).setOrigin(0.5).setDepth(15);
             },
             shelter: () => {
-              paintRect(floor, 1, 1, 18, 12, 12);
+              paintRect(floor, 1, 1, 18, 12, 48);
               paintRect(furniture, 8, 5, 4, 4, 99);
               paintRect(furniture, 3, 3, 3, 2, 100);
               paintRect(furniture, 14, 3, 3, 2, 100);
@@ -1153,12 +1294,12 @@
               this.tweens.add({ targets: calm, scaleX: 1.5, scaleY: 1.5, alpha: 0.02, duration: 1100, yoyo: true, repeat: -1 });
             },
             market: () => {
-              paintRect(floor, 1, 1, 18, 12, 4);
+              paintRect(floor, 1, 1, 18, 12, 50);
               paintRect(furniture, 4, 5, 12, 3, 102);
               this.add.text(190, 36, "🛒 网购广场", { fontFamily: "monospace", fontSize: "12px", color: "#d2ffe8" }).setOrigin(0.5).setDepth(15);
             },
             social: () => {
-              paintRect(floor, 1, 1, 18, 12, 7);
+              paintRect(floor, 1, 1, 18, 12, 51);
               paintRect(furniture, 5, 4, 10, 3, 103);
               this.add.text(190, 36, "📱 社交广场", { fontFamily: "monospace", fontSize: "12px", color: "#ecd7ff" }).setOrigin(0.5).setDepth(15);
             }
@@ -1189,6 +1330,7 @@
             layer.setScale(SCALE);
             layer.setDepth(2 + idx);
           });
+          this.add.rectangle(IN_W * TILE, IN_H * TILE, IN_W * TILE * SCALE, IN_H * TILE * SCALE, 0x000000, 0.12).setDepth(8);
 
           this.cameras.main.setBounds(0, 0, IN_W * TILE * SCALE, IN_H * TILE * SCALE);
           this.cameras.main.setZoom(1);
@@ -1197,7 +1339,7 @@
 
         buildPlayer() {
           const spawn = tileToWorld(10, 12.3);
-          this.player = this.add.sprite(0, 0, "xiaobai", 104).setScale(2).setDepth(30);
+          this.player = this.add.sprite(0, 0, "xiaobai", 110).setScale(2).setDepth(30);
           this.player.setOrigin(0.5, 0.75);
           this.player.play("idle-down");
 
