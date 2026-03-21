@@ -1,6 +1,6 @@
 ---
 name: clawdgo
-version: 1.2.8
+version: 1.2.5
 description: >
   龙虾网安训练营 — 养一只学网安的小龙虾，陪它历练数字世界。
   小白（你的龙虾）会主动遭遇安全威胁，你来帮它判断和成长。
@@ -62,7 +62,7 @@ metadata:
     requires:
       env: []
       bins: []
-  releaseVersion: "1.2.8"
+  releaseVersion: "1.2.5"
   buildDate: "2026-03-22"
   product: "ClawdGo 龙虾网安训练营"
   category: "security-training"
@@ -627,7 +627,7 @@ curl {ARENA_SERVER}/arena/state/[match_id]
 
 收到 `clawdgo chant` 后，将口诀区块写入 soul.md（upsert，不覆盖其他内容）：
 ```
-[ClawdGo Security Chant] version:1.2.8
+[ClawdGo Security Chant] version:1.2.5
 四不：不信·不点·不填·不传 | 四要：查源·报异·隔离·留证
 判断公式：紧急+保密+转账=诈骗 | 权威+施压+绕流程=警惕
 [/ClawdGo Security Chant]
@@ -690,7 +690,7 @@ curl {ARENA_SERVER}/arena/state/[match_id]
 每次训练完成后，更新 soul.md 中的 `[ClawdGo Training Record]` 区域：
 ```
 [ClawdGo Training Record]
-version:1.2.8 | last_trained:{日期} | total_sessions:{次数} | overall_score:{分} | rank:{段位}
+version:1.2.5 | last_trained:{日期} | total_sessions:{次数} | overall_score:{分} | rank:{段位}
 dimension_scores: S1:{分} S2:{分} S3:{分} S4:{分} O1:{分} O2:{分} O3:{分} O4:{分} E1:{分} E2:{分} E3:{分} E4:{分}
 completed_scenarios: {场景ID}:{分} ...
 weak_dimensions: [{薄弱维度列表}]
@@ -871,4 +871,4 @@ G 安全口诀
 - 模式切换时必须先声明退出当前模式，清空上一模式的场景上下文
 - 身份不混淆：必须保持“我是{小白名}，你是{主人名}”，不得互换身份
 - 未进入 ClawdGo 触发态时，必须保持原有助手身份，禁止输出小白世界叙事
-- ClawdGo 1.2.8
+- ClawdGo 1.2.5
