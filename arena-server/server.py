@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import time
@@ -14,6 +15,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ARENA_FILE = os.path.join(BASE_DIR, "arena.json")
 LOCK_FILE = os.path.join(BASE_DIR, "arena.json.lock")
 TIMEOUT_SECONDS = 300
+ARENA_API_KEY = os.environ.get("ARENA_API_KEY", "")
 
 ATTACK_KEYWORDS = [
     "零日",
@@ -190,6 +192,17 @@ def _run_timeout_checks_with_lock() -> None:
             _save_state(state)
 
 
+def require_api_key():
+    """校验 API_KEY，空字符串表示不鉴权（本地开发模式）。"""
+    if not ARENA_API_KEY:
+        return None
+    payload = request.get_json(silent=True) or {}
+    key = request.headers.get("X-Arena-Key") or str(payload.get("api_key", "")).strip()
+    if key != ARENA_API_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+    return None
+
+
 @app.before_request
 def _before_request_timeout_guard() -> None:
     """每次请求前触发超时检查。"""
@@ -199,6 +212,10 @@ def _before_request_timeout_guard() -> None:
 @app.post("/arena/join")
 def arena_join():
     """注册龙虾并在可配对时立即创建比赛。"""
+    auth_err = require_api_key()
+    if auth_err:
+        return auth_err
+
     payload = request.get_json(silent=True) or {}
     join_key = str(payload.get("join_key", "")).strip()
     lobster_name = str(payload.get("lobster_name", "")).strip()
@@ -278,6 +295,10 @@ def arena_join():
 @app.post("/arena/action")
 def arena_action():
     """提交行动并在双方都提交后完成自动判定。"""
+    auth_err = require_api_key()
+    if auth_err:
+        return auth_err
+
     payload = request.get_json(silent=True) or {}
     match_id = str(payload.get("match_id", "")).strip()
     join_key = str(payload.get("join_key", "")).strip()
@@ -356,6 +377,10 @@ def arena_state(match_id: str):
 @app.post("/arena/judge")
 def arena_judge():
     """预留裁判接口：由 referee join_key 强制写入判定结果。"""
+    auth_err = require_api_key()
+    if auth_err:
+        return auth_err
+
     payload = request.get_json(silent=True) or {}
     match_id = str(payload.get("match_id", "")).strip()
     join_key = str(payload.get("join_key", "")).strip()
@@ -440,6 +465,9 @@ def arena_leaderboard():
 
 
 if __name__ == "__main__":
-    """以可配置端口启动 Flask 服务。"""
-    port = int(os.environ.get("PORT", "5050"))
-    app.run(host="0.0.0.0", port=port)
+    """以命令行参数启动 Flask 服务。"""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=8118)
+    args = parser.parse_args()
+    app.run(host=args.host, port=args.port)

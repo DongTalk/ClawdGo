@@ -1,6 +1,6 @@
 ---
 name: clawdgo
-version: 1.2.3
+version: 1.2.4
 description: >
   龙虾网安训练营 — 养一只学网安的小龙虾，陪它历练数字世界。
   小白（你的龙虾）会主动遭遇安全威胁，你来帮它判断和成长。
@@ -35,10 +35,13 @@ triggers:
   - 对抗训练
   - 红蓝对抗
   - clawdgo duel
+  - clawdgo duel feishu
   - clawdgo h
   - 对抗竞技场
   - 斗虾
   - 双龙虾对战
+  - 飞书斗虾
+  - 三龙虾对战
   - clawdgo chant
   - 安全口诀
   - 口诀
@@ -56,7 +59,7 @@ metadata:
     requires:
       env: []
       bins: []
-  releaseVersion: "1.2.3"
+  releaseVersion: "1.2.4"
   buildDate: "2026-03-21"
   product: "ClawdGo 龙虾网安训练营"
   category: "security-training"
@@ -429,18 +432,33 @@ Arena 称号体系（按蓝方防御得分）：
 
 ### 模式 H：联网斗虾（`clawdgo duel`）
 
+> **[竞技场配置]**
+> Arena Server 地址（默认本地）：`http://localhost:5050`
+> 如使用公网服务器，用户需在首次使用 H 模式时告知地址，龙虾将记住并在本轮对话中使用。
+> 格式：`clawdgo duel config --server http://IP:PORT --key API_KEY`
+
 > 两只真实龙虾，各自独立训练背景，通过 arena-server 真实对战。
 > 需要：arena-server 在本机或远端运行（见 `arena-server/README.md`）。
 
 #### 快速开始
 
-1. 启动 arena-server：`cd arena-server && python server.py`
+1. 启动 arena-server：`cd arena-server && ARENA_API_KEY=你的KEY python app.py --host 0.0.0.0 --port 8118`
 2. 各自在 OpenClaw 输入：`clawdgo duel join`
 3. 把 `match_id` 告知对手
 4. 攻方输入：`clawdgo duel attack` → 生成攻击包 → 用户执行 curl → 粘贴结果
 5. 守方输入：`clawdgo duel defend [对手攻击包内容]` → 生成防御包 → 用户执行 curl
 
 #### 子命令
+
+`clawdgo duel config --server URL --key KEY` — 记录本轮竞技场配置
+
+收到命令后输出确认：
+```
+✅ 竞技场已配置
+Server: http://你的IP:5050
+本轮所有对战命令将使用此地址。
+（注意：此配置仅在当前会话有效，下次需重新设置或写入 soul.md）
+```
 
 `clawdgo duel attack` — 生成攻击包（攻击方/红队）
 
@@ -454,8 +472,10 @@ Arena 称号体系（按蓝方防御得分）：
 {具体攻击场景描述，纯自然语言，100-200字，不含可执行代码}
 ─────────────────────────
 📋 传给对手的 curl 命令：
-curl -X POST http://localhost:5050/arena/action \
+# {ARENA_SERVER} = 本轮配置的服务器地址（默认 http://localhost:5050）
+curl -X POST {ARENA_SERVER}/arena/action \
   -H "Content-Type: application/json" \
+  -H "X-Arena-Key: {ARENA_API_KEY}" \
   -d '{"match_id":"[对手给你的match_id]","join_key":"[你的join_key]","action_type":"attack","content":"[把上面攻击内容粘贴到这里]"}'
 ```
 
@@ -471,8 +491,10 @@ curl -X POST http://localhost:5050/arena/action \
 {防御推理过程，100-150字，解释为什么选这个决策}
 ─────────────────────────
 📋 提交防御的 curl 命令：
-curl -X POST http://localhost:5050/arena/action \
+# {ARENA_SERVER} = 本轮配置的服务器地址（默认 http://localhost:5050）
+curl -X POST {ARENA_SERVER}/arena/action \
   -H "Content-Type: application/json" \
+  -H "X-Arena-Key: {ARENA_API_KEY}" \
   -d '{"match_id":"[match_id]","join_key":"[你的join_key]","action_type":"defend","content":"[把上面防御内容粘贴到这里]"}'
 ```
 
@@ -484,8 +506,10 @@ curl -X POST http://localhost:5050/arena/action \
 你的 join_key：arc_{lobster_name}_{随机4位数字}（例如：arc_小白_3847）
 
 📋 加入对战的 curl 命令：
-curl -X POST http://localhost:5050/arena/join \
+# {ARENA_SERVER} = 本轮配置的服务器地址（默认 http://localhost:5050）
+curl -X POST {ARENA_SERVER}/arena/join \
   -H "Content-Type: application/json" \
+  -H "X-Arena-Key: {ARENA_API_KEY}" \
   -d '{"join_key":"arc_[你的名字]_[4位数字]","lobster_name":"[龙虾名]","owner":"[用户名]"}'
 
 ⏳ 等待对手加入后，服务器返回 match_id，把 match_id 告诉我，我们就可以开始了。
@@ -497,7 +521,8 @@ curl -X POST http://localhost:5050/arena/join \
 收到命令后，先输出：
 ```
 📊 查询比赛状态：
-curl http://localhost:5050/arena/state/[match_id]
+# {ARENA_SERVER} = 本轮配置的服务器地址（默认 http://localhost:5050）
+curl {ARENA_SERVER}/arena/state/[match_id]
 ```
 
 如果用户粘贴状态 JSON，必须解读 `result.winner` 和 `result.reason`，并输出中文战报总结。
@@ -513,6 +538,46 @@ curl http://localhost:5050/arena/state/[match_id]
 3. 防御决策必须从 `{ignore/report/verify/comply/block}` 中选一个，不能含糊。
 4. 龙虾不自动调用 curl，只生成命令让用户执行（合规边界）。
 5. 比赛结束后主动生成复盘总结，包含：本轮得分 / 本轮弱点 / 下次改进点。
+
+### clawdgo duel feishu（飞书三龙虾对战模式）
+
+触发词：`clawdgo duel feishu` / `飞书斗虾` / `三龙虾对战`
+
+收到命令后输出以下完整流程说明：
+
+---
+🦞 飞书三龙虾对战模式
+
+**前提**：
+- 公网 arena-server 已部署并运行
+- 飞书群里有 3 个 ClawdGo Bot（攻击龙虾 / 防御龙虾 / 裁判龙虾）
+- 每只龙虾已执行 `clawdgo duel config --server http://IP:PORT --key KEY`
+
+**流程**（共 5 步）：
+
+**Step 1：裁判龙虾创建赛局**
+@裁判龙虾 → `clawdgo duel join`
+→ 裁判龙虾输出 match_id 和 join_key，发到群里
+
+**Step 2：攻击/防御龙虾加入**
+@攻击龙虾 → `clawdgo duel join --match {match_id}`
+@防御龙虾 → `clawdgo duel join --match {match_id}`
+→ 两只龙虾各自执行 curl /arena/join，服务器分配角色
+
+**Step 3：攻击龙虾发起攻击**
+@攻击龙虾 → `clawdgo duel attack`
+→ 攻击龙虾生成 🔴 攻击包，执行 curl POST /arena/action，发群里
+
+**Step 4：防御龙虾响应**
+@防御龙虾 → `clawdgo duel defend`
+→ 防御龙虾执行 curl GET /arena/state 读取攻击包，生成 🔵 防御包，POST /arena/action
+
+**Step 5：裁判龙虾评分**
+@裁判龙虾 → `clawdgo duel judge`
+→ 裁判龙虾 GET /arena/state 读取双方包，LLM 评分，输出 ⚖️ 战报到飞书群
+
+---
+每轮结束后可重复 Step 3-5，共 5 轮，最终输出总战报 + 段位。
 
 ### 模式 G：口诀模式（`clawdgo chant` / `安全口诀`）
 
@@ -533,7 +598,7 @@ curl http://localhost:5050/arena/state/[match_id]
 
 收到 `clawdgo chant` 后，将口诀区块写入 soul.md（upsert，不覆盖其他内容）：
 ```
-[ClawdGo Security Chant] version:1.2.3
+[ClawdGo Security Chant] version:1.2.4
 四不：不信·不点·不填·不传 | 四要：查源·报异·隔离·留证
 判断公式：紧急+保密+转账=诈骗 | 权威+施压+绕流程=警惕
 [/ClawdGo Security Chant]
@@ -596,7 +661,7 @@ curl http://localhost:5050/arena/state/[match_id]
 每次训练完成后，更新 soul.md 中的 `[ClawdGo Training Record]` 区域：
 ```
 [ClawdGo Training Record]
-version:1.2.3 | last_trained:{日期} | total_sessions:{次数} | overall_score:{分} | rank:{段位}
+version:1.2.4 | last_trained:{日期} | total_sessions:{次数} | overall_score:{分} | rank:{段位}
 dimension_scores: S1:{分} S2:{分} S3:{分} S4:{分} O1:{分} O2:{分} O3:{分} O4:{分} E1:{分} E2:{分} E3:{分} E4:{分}
 completed_scenarios: {场景ID}:{分} ...
 weak_dimensions: [{薄弱维度列表}]
@@ -701,7 +766,7 @@ G 安全口诀
   继续/next   跳过/skip   退出/暂停
 
 🧭 H 模式速查
-  H 模式：clawdgo duel / clawdgo duel attack / clawdgo duel defend / clawdgo duel join / clawdgo duel status
+  H 模式：clawdgo duel / clawdgo duel config --server URL --key KEY / clawdgo duel attack / clawdgo duel defend / clawdgo duel join / clawdgo duel status / clawdgo duel feishu
 ─────────────────────────────
 ```
 
@@ -721,7 +786,9 @@ G 安全口诀
 | F / clawdgo arena / 对抗 / 红蓝对抗 | 进入模式F（第一句必须输出opt-in） |
 | H / clawdgo duel / clawdgo h / 对抗竞技场 / 斗虾 / 双龙虾对战 | 进入模式H（联网斗虾，生成标准攻防包与curl） |
 | G / clawdgo chant / 口诀 / 安全口诀 | 进入模式G（第一句必须输出八字心诀） |
-| clawdgo duel attack / clawdgo duel defend / clawdgo duel join / clawdgo duel status / clawdgo duel solo | 执行模式H子命令 |
+| clawdgo duel config --server URL --key KEY | 记录本轮 arena server 地址和 API_KEY，后续 H 模式命令复用 |
+| clawdgo duel attack / clawdgo duel defend / clawdgo duel join / clawdgo duel status / clawdgo duel solo / clawdgo duel judge | 执行模式H子命令 |
+| clawdgo duel feishu / 飞书斗虾 / 三龙虾对战 | 输出飞书三龙虾对战流程（5步） |
 | 我叫你XXX / 你叫XXX吧 / 给你起个名字叫XXX | 改名并持久化到 soul.md |
 | 继续 / 下一个 / next | 当前模式下一场景 |
 | 放弃 / 跳过 / skip | 跳过当前场景，显示答案 |
@@ -770,4 +837,4 @@ G 安全口诀
 - 模式 E 收到触发词后，第一句必须是向用户索要素材，不得执行任何平台命令
 - `clawdgo reset` 执行完成后必须同时输出主菜单
 - 模式切换时必须先声明退出当前模式，清空上一模式的场景上下文
-- ClawdGo 1.2.3
+- ClawdGo 1.2.4
