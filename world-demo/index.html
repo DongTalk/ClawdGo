@@ -3,20 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>龙虾安全世界 · 可视化地图 v2</title>
+  <title>龙虾安全世界 v3 · RPG 完整世界</title>
   <style>
     :root {
-      --bg: #050d1a;
-      --panel: rgba(8, 16, 30, 0.94);
-      --panel-border: rgba(30, 58, 95, 0.9);
-      --text: rgba(238, 248, 255, 0.96);
-      --muted: rgba(200, 220, 245, 0.72);
-      --primary: #00d4ff;
-      --safe: #00ff88;
-      --danger: #ff4444;
-      --road: #111827;
-      --topbar: rgba(5, 12, 24, 0.98);
-      --topbar-border: rgba(30, 58, 95, 0.7);
+      --bg: #070d17;
+      --panel: rgba(8, 14, 26, 0.94);
+      --panel-border: #1f3a5a;
+      --text: #e9f6ff;
+      --muted: #97afc4;
+      --danger: #ff5f5f;
+      --safe: #00d47a;
+      --xp: #00c7ff;
     }
 
     * {
@@ -25,202 +22,176 @@
 
     html,
     body {
-      width: 100%;
-      height: 100%;
       margin: 0;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 16% 8%, rgba(0, 212, 255, 0.08), transparent 34%),
-        radial-gradient(circle at 92% 94%, rgba(245, 158, 11, 0.08), transparent 30%),
-        var(--bg);
-      font-family: "Press Start 2P", "Courier New", monospace;
-      overflow: hidden;
-    }
-
-    .app {
-      display: flex;
-      flex-direction: column;
       width: 100%;
       height: 100%;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 12px 18px;
-      background: var(--topbar);
-      border-bottom: 1px solid var(--topbar-border);
-      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.38);
-      z-index: 4;
-    }
-
-    .title-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .title {
-      font-size: 13px;
-      white-space: nowrap;
+      background:
+        radial-gradient(circle at 16% 12%, rgba(72, 187, 255, 0.14), transparent 36%),
+        radial-gradient(circle at 86% 88%, rgba(242, 155, 44, 0.12), transparent 32%),
+        var(--bg);
+      color: var(--text);
+      font-family: "Courier New", monospace;
       overflow: hidden;
-      text-overflow: ellipsis;
-      color: #dff7ff;
-      letter-spacing: 0.2px;
     }
 
-    .mode-badge {
-      border: 1px solid rgba(0, 212, 255, 0.45);
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 10px;
-      color: var(--primary);
-      background: rgba(0, 212, 255, 0.08);
-      min-width: 44px;
-      text-align: center;
-    }
-
-    .mode-badge.live {
-      border-color: rgba(0, 255, 136, 0.55);
-      color: var(--safe);
-      background: rgba(0, 255, 136, 0.11);
-    }
-
-    .top-stats {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      font-size: 12px;
-      color: rgba(225, 238, 255, 0.9);
-      white-space: nowrap;
-    }
-
-    .top-stats b {
-      color: var(--primary);
-    }
-
-    .main {
-      flex: 1;
-      min-height: 0;
+    .app-shell {
+      width: 100%;
+      height: 100%;
       display: grid;
-      grid-template-columns: 65% 35%;
+      grid-template-columns: 1fr 300px;
     }
 
-    .map-shell {
+    #game-wrap {
       position: relative;
-      min-height: 0;
       min-width: 0;
-      border-right: 1px solid rgba(30, 58, 95, 0.7);
-      background: #020916;
+      min-height: 0;
+      border-right: 1px solid rgba(31, 58, 90, 0.85);
     }
 
     #game-container {
       width: 100%;
       height: 100%;
-    }
-
-    #game-container canvas {
-      display: block;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }
 
-    .map-overlay {
+    #game-container canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    .world-tag {
       position: absolute;
-      left: 12px;
-      bottom: 12px;
+      top: 10px;
+      left: 10px;
+      z-index: 6;
       padding: 6px 10px;
-      border-radius: 7px;
-      border: 1px solid rgba(0, 212, 255, 0.22);
-      background: rgba(4, 14, 28, 0.78);
-      font-size: 10px;
-      color: rgba(199, 224, 255, 0.85);
+      border: 1px solid rgba(0, 199, 255, 0.25);
+      border-radius: 8px;
+      background: rgba(6, 18, 34, 0.72);
+      font-size: 12px;
+      color: #b9e8ff;
       pointer-events: none;
     }
 
-    .panel {
-      min-height: 0;
-      min-width: 0;
+    #ui-overlay {
       background: var(--panel);
       display: flex;
       flex-direction: column;
-      padding: 14px;
       gap: 12px;
+      padding: 14px;
+      min-height: 0;
+      border-left: 1px solid rgba(255, 255, 255, 0.02);
     }
 
     .status-card,
-    .events {
+    .events-card {
       border: 1px solid var(--panel-border);
       border-radius: 10px;
-      background: rgba(14, 28, 48, 0.7);
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02), 0 8px 18px rgba(0, 0, 0, 0.28);
+      background: rgba(13, 25, 43, 0.85);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 8px 20px rgba(0, 0, 0, 0.28);
     }
 
     .status-card {
       padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-    }
-
-    .loc-row {
-      display: flex;
-      align-items: center;
       gap: 8px;
-      font-size: 14px;
-      color: #eff9ff;
     }
 
-    .loc-icon {
-      font-size: 16px;
+    .mode-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 2px;
     }
 
-    .loc-name {
-      font-size: 14px;
-      color: #f6fdff;
+    .mode-pill {
+      border: 1px solid rgba(0, 199, 255, 0.4);
+      border-radius: 999px;
+      padding: 2px 8px;
+      color: #6fe1ff;
+      font-size: 10px;
+      background: rgba(0, 199, 255, 0.1);
+    }
+
+    .mode-pill.live {
+      border-color: rgba(0, 212, 122, 0.5);
+      color: #65ffba;
+      background: rgba(0, 212, 122, 0.1);
+    }
+
+    .floor-indicator {
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 8px;
+      padding: 6px 8px;
+      color: #cfe8ff;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .location-row {
+      font-size: 15px;
+      color: #f4fbff;
+      line-height: 1.3;
       word-break: break-word;
     }
 
     .mood-row,
-    .threat-row {
+    .threat-row,
+    .meta-row {
       font-size: 12px;
-      line-height: 1.55;
-      color: rgba(220, 236, 255, 0.92);
+      line-height: 1.4;
       word-break: break-word;
+    }
+
+    .mood-row {
+      color: #dceeff;
+    }
+
+    .threat-row {
+      color: #ff9d9d;
     }
 
     .threat-row.safe {
       color: var(--safe);
     }
 
-    .progress-bars {
-      border: 1px solid rgba(30, 58, 95, 0.85);
-      border-radius: 8px;
-      padding: 10px;
-      background: rgba(7, 15, 26, 0.74);
-      display: grid;
-      grid-template-columns: auto 1fr;
-      column-gap: 8px;
-      row-gap: 8px;
-      align-items: center;
+    .meta-row {
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
     }
 
-    .bar-label {
-      color: var(--muted);
+    .bars {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 8px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      column-gap: 6px;
+      row-gap: 8px;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .bar-label,
+    .bar-value {
       font-size: 11px;
-      min-width: 24px;
-      text-align: right;
+      color: #bad1e7;
     }
 
     .bar-track {
       height: 10px;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.08);
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.06);
     }
 
     .bar-fill {
@@ -230,16 +201,16 @@
     }
 
     .bar-fill.hp {
-      background: linear-gradient(90deg, #0dcf7a 0%, #32f0b4 100%);
+      background: linear-gradient(90deg, #00d47a, #56ffc1);
     }
 
     .bar-fill.xp {
-      background: linear-gradient(90deg, #00baf2 0%, #00d4ff 100%);
+      background: linear-gradient(90deg, #00a7ff, #00e5ff);
     }
 
-    .events {
+    .events-card {
       flex: 1;
-      min-height: 180px;
+      min-height: 210px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -247,19 +218,20 @@
 
     .events-head {
       padding: 10px 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      color: #d7ebff;
       font-size: 12px;
-      color: #ecf8ff;
     }
 
-    .events-list {
+    #eventsList {
       margin: 0;
-      padding: 8px 10px 10px;
+      padding: 8px 10px;
       list-style: none;
       overflow: auto;
       display: flex;
       flex-direction: column;
       gap: 6px;
+      flex: 1;
     }
 
     .event-item {
@@ -267,151 +239,140 @@
       grid-template-columns: 16px 1fr;
       gap: 8px;
       font-size: 11px;
-      color: rgba(222, 236, 250, 0.88);
-      line-height: 1.4;
-      border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+      color: #d0e3f3;
+      line-height: 1.35;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
       padding-bottom: 5px;
     }
 
     .event-item:last-child {
       border-bottom: 0;
-      padding-bottom: 2px;
+      padding-bottom: 1px;
     }
 
-    .event-symbol {
+    .event-mark {
       text-align: center;
+      color: #68cbff;
       font-weight: bold;
-      color: var(--primary);
     }
 
-    .event-item.safe .event-symbol {
+    .event-item.safe .event-mark {
       color: var(--safe);
     }
 
-    .event-item.danger .event-symbol {
-      color: #ff7e7e;
+    .event-item.danger .event-mark {
+      color: var(--danger);
     }
 
-    .event-item.move .event-symbol {
-      color: #84bbff;
+    .event-item.move .event-mark {
+      color: #8bb9ff;
     }
 
-    .updated {
-      margin-top: 2px;
-      font-size: 10px;
-      color: rgba(185, 206, 230, 0.68);
-    }
-
-    @media (max-width: 1050px) {
+    @media (max-width: 1080px) {
       body {
         overflow: auto;
       }
 
-      .main {
+      .app-shell {
         grid-template-columns: 1fr;
-        grid-template-rows: 56vh auto;
+        grid-template-rows: 58vh auto;
       }
 
-      .map-shell {
+      #game-wrap {
         border-right: 0;
-        border-bottom: 1px solid rgba(30, 58, 95, 0.7);
+        border-bottom: 1px solid rgba(31, 58, 90, 0.85);
       }
 
-      .events {
-        min-height: 220px;
-      }
-    }
-
-    @media (max-width: 680px) {
-      .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .top-stats {
-        width: 100%;
-        justify-content: space-between;
-      }
-
-      .title {
-        font-size: 12px;
+      #ui-overlay {
+        min-height: 320px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-      <div class="title-group">
-        <div class="title">🦞 龙虾安全世界 · 像素城市</div>
-        <div class="mode-badge" id="modeBadge">DEMO</div>
-      </div>
-      <div class="top-stats">
-        <span id="nameLevel">小白 · Lv.3</span>
-        <span>已解决威胁: <b id="resolvedCount">35</b></span>
-      </div>
-    </header>
+  <div class="app-shell">
+    <section id="game-wrap">
+      <div class="world-tag" id="worldTag">🦞 龙虾安全世界 v3</div>
+      <div id="game-container"></div>
+    </section>
 
-    <main class="main">
-      <section class="map-shell">
-        <div id="game-container"></div>
-        <div class="map-overlay">WASD 不需要控制，小白会根据状态自动行动</div>
-      </section>
-
-      <aside class="panel">
-        <div class="status-card">
-          <div class="loc-row">
-            <span class="loc-icon" id="locationIcon">🏠</span>
-            <span class="loc-name" id="locationText">小白的家</span>
-          </div>
-          <div class="mood-row" id="moodText">🙂 好奇</div>
-          <div class="threat-row" id="threatText">发现陌生设备连入家庭网络</div>
-
-          <div class="progress-bars">
-            <div class="bar-label">HP</div>
-            <div class="bar-track"><div class="bar-fill hp" id="hpBar"></div></div>
-            <div class="bar-label">XP</div>
-            <div class="bar-track"><div class="bar-fill xp" id="xpBar"></div></div>
-          </div>
-
-          <div class="updated" id="updatedText">最后更新: --</div>
+    <aside id="ui-overlay">
+      <div class="status-card">
+        <div class="mode-row">
+          <span id="nameLevel">小白 · Lv.3</span>
+          <span class="mode-pill" id="modeBadge">DEMO</span>
         </div>
 
-        <div class="events">
-          <div class="events-head">📋 实时事件流</div>
-          <ul class="events-list" id="eventsList"></ul>
+        <div class="floor-indicator" id="floorText">🌍 城市地图</div>
+        <div class="location-row" id="locationText">🏠 小白的家</div>
+        <div class="mood-row" id="moodText">🙂 好奇</div>
+        <div class="threat-row" id="threatText">⚡ 路由器出现陌生设备</div>
+
+        <div class="bars">
+          <div class="bar-label">HP</div>
+          <div class="bar-track"><div class="bar-fill hp" id="hpBar"></div></div>
+          <div class="bar-value" id="hpValue">100%</div>
+
+          <div class="bar-label">XP</div>
+          <div class="bar-track"><div class="bar-fill xp" id="xpBar"></div></div>
+          <div class="bar-value" id="xpValue">50%</div>
         </div>
-      </aside>
-    </main>
+
+        <div class="meta-row">
+          <span>已解决威胁: <b id="resolvedCount">35</b></span>
+          <span id="updatedText">--:--:--</span>
+        </div>
+      </div>
+
+      <div class="events-card">
+        <div class="events-head">📋 实时事件流</div>
+        <ul id="eventsList"></ul>
+      </div>
+    </aside>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+  <script src="./vendor/phaser.min.js"></script>
   <script>
     (() => {
-      const TILE_SIZE = 32;
-      const MAP_TILES_W = 30;
-      const MAP_TILES_H = 20;
-      const MAP_WIDTH = MAP_TILES_W * TILE_SIZE;
-      const MAP_HEIGHT = MAP_TILES_H * TILE_SIZE;
+      const TILE = 16;
+      const SCALE = 2;
+      const OW_W = 40;
+      const OW_H = 28;
+      const IN_W = 20;
+      const IN_H = 14;
 
-      const WORLD_WIDTH = 1280;
-      const WORLD_HEIGHT = 880;
-      const MAP_OFFSET_X = Math.floor((WORLD_WIDTH - MAP_WIDTH) / 2);
-      const MAP_OFFSET_Y = Math.floor((WORLD_HEIGHT - MAP_HEIGHT) / 2);
+      const INDOOR_ROOMS = new Set(["home", "cafe", "office", "temple", "bank", "shelter"]);
 
-      const COLORS = {
-        bg: 0x050d1a,
-        ground: 0x0a0f1a,
-        road: 0x111827,
-        border: 0x1e3a5f,
-        xiaobai: 0xff6b35,
-        xiaobaiAlert: 0xff9f43,
-        xiaobaiDanger: 0xff4d4d,
-        packet: 0x00d4ff,
-        threat: 0x7c3aed,
-        safe: 0x00ff88,
-        danger: 0xff4444,
-        temple: 0xf59e0b
+      const BUILDINGS = {
+        home: { id: "home", icon: "🏠", name: "小白的家", tx: 3, ty: 3, tw: 6, th: 5, roomName: "小白的家" },
+        cafe: { id: "cafe", icon: "☕", name: "咖啡厅", tx: 3, ty: 14, tw: 5, th: 4, roomName: "咖啡厅" },
+        office: { id: "office", icon: "🏢", name: "职场", tx: 14, ty: 2, tw: 7, th: 6, roomName: "职场" },
+        market: { id: "market", icon: "🛒", name: "网购广场", tx: 12, ty: 12, tw: 6, th: 5, roomName: "网购广场" },
+        social: { id: "social", icon: "📱", name: "社交广场", tx: 23, ty: 8, tw: 5, th: 5, roomName: "社交广场" },
+        bank: { id: "bank", icon: "🏦", name: "网络银行", tx: 22, ty: 18, tw: 6, th: 4, roomName: "网络银行" },
+        temple: { id: "temple", icon: "🏛", name: "神庙区", tx: 13, ty: 3, tw: 5, th: 6, roomName: "神庙区" },
+        shelter: { id: "shelter", icon: "🛡", name: "安全屋", tx: 32, ty: 12, tw: 5, th: 4, roomName: "安全屋" }
+      };
+
+      const LOCATION_MAP = {
+        数字市集: "market",
+        网购广场: "market",
+        社交网络: "social",
+        社交广场: "social",
+        漏洞沼泽: "cafe",
+        咖啡厅: "cafe",
+        数据中心: "office",
+        职场: "office",
+        神庙: "temple",
+        神庙区: "temple",
+        密码丛林: "temple",
+        暗网交易所: "bank",
+        网络银行: "bank",
+        防火墙要塞: "shelter",
+        安全岛: "shelter",
+        安全屋: "shelter",
+        小白的家: "home",
+        家: "home"
       };
 
       const MOOD_ICON = {
@@ -434,161 +395,15 @@
         自豪: 100
       };
 
-      const ALERT_MOODS = new Set(["警惕", "紧张"]);
-      const DANGER_MOODS = new Set(["危险", "恐慌"]);
-
-      const LOCATION_MAP = {
-        数字市集: "market",
-        网购广场: "market",
-        防火墙要塞: "shelter",
-        安全岛: "shelter",
-        安全屋: "shelter",
-        社交网络: "social",
-        社交广场: "social",
-        漏洞沼泽: "cafe",
-        咖啡厅: "cafe",
-        数据中心: "office",
-        职场: "office",
-        暗网交易所: "bank",
-        密码丛林: "temple",
-        神庙: "temple",
-        神庙区: "temple",
-        小白的家: "home",
-        家: "home"
-      };
-
-      const BUILDING_DEFS = {
-        home: {
-          id: "home",
-          icon: "🏠",
-          name: "小白的家",
-          theme: "home",
-          color: 0xfb923c,
-          border: 0xf59e0b,
-          tx: 2,
-          ty: 2,
-          tw: 4,
-          th: 3,
-          windows: 3
-        },
-        cafe: {
-          id: "cafe",
-          icon: "☕",
-          name: "咖啡厅",
-          theme: "cafe",
-          color: 0x8b5e3c,
-          border: 0xb58a65,
-          tx: 3,
-          ty: 9,
-          tw: 4,
-          th: 3,
-          windows: 4
-        },
-        office: {
-          id: "office",
-          icon: "🏢",
-          name: "职场",
-          theme: "office",
-          color: 0x64748b,
-          border: 0x93a2bb,
-          tx: 21,
-          ty: 2,
-          tw: 5,
-          th: 4,
-          windows: 6
-        },
-        market: {
-          id: "market",
-          icon: "🛒",
-          name: "网购广场",
-          theme: "market",
-          color: 0x2e9f67,
-          border: 0x5ecf8f,
-          tx: 12,
-          ty: 8,
-          tw: 6,
-          th: 4,
-          windows: 5
-        },
-        social: {
-          id: "social",
-          icon: "📱",
-          name: "社交广场",
-          theme: "social",
-          color: 0x7c3aed,
-          border: 0xa78bfa,
-          tx: 22,
-          ty: 10,
-          tw: 5,
-          th: 3,
-          windows: 4
-        },
-        bank: {
-          id: "bank",
-          icon: "🏦",
-          name: "网络银行",
-          theme: "bank",
-          color: 0x9a7a1f,
-          border: 0xeab308,
-          tx: 21,
-          ty: 15,
-          tw: 5,
-          th: 4,
-          windows: 4
-        },
-        temple: {
-          id: "temple",
-          icon: "🏛",
-          name: "神庙区",
-          theme: "temple",
-          color: 0xf8fafc,
-          border: 0xf59e0b,
-          tx: 12,
-          ty: 2,
-          tw: 6,
-          th: 4,
-          windows: 5
-        },
-        shelter: {
-          id: "shelter",
-          icon: "🛡",
-          name: "安全屋",
-          theme: "shelter",
-          color: 0x0f766e,
-          border: 0x00ff88,
-          tx: 12,
-          ty: 14,
-          tw: 6,
-          th: 4,
-          windows: 4
-        }
-      };
-
-      const BUILDING_LIST = Object.values(BUILDING_DEFS);
-
-      const ROAD_LINKS = [
-        ["home", "cafe"],
-        ["home", "temple"],
-        ["temple", "office"],
-        ["office", "social"],
-        ["social", "bank"],
-        ["market", "social"],
-        ["market", "cafe"],
-        ["market", "shelter"],
-        ["shelter", "bank"],
-        ["market", "temple"],
-        ["home", "market"]
-      ];
-
       const DEMO_SCRIPT = [
-        { t: 0, location: "小白的家", mood: "好奇", threat: "发现陌生设备连入家庭网络", event: "▶ 家庭网络出现不明设备" },
-        { t: 8, location: "咖啡厅", mood: "警惕", threat: "检测到 Evil Twin WiFi", event: "→ 移动至咖啡厅" },
-        { t: 16, location: "咖啡厅", mood: "紧张", threat: "中间人攻击流量异常", event: "▶ 发现中间人攻击" },
-        { t: 24, location: "安全屋", mood: "放松", threat: null, event: "✓ 威胁成功阻断" },
-        { t: 32, location: "职场", mood: "警惕", threat: "收到伪造CEO邮件", event: "▶ 钓鱼邮件出现" },
-        { t: 40, location: "网购广场", mood: "危险", threat: "发现假冒支付页面", event: "▶ 支付页面可疑" },
-        { t: 48, location: "神庙区", mood: "紧张", threat: "进入神庙挑战模式", event: "→ 进入神庙备战" },
-        { t: 56, location: "小白的家", mood: "自豪", threat: null, event: "✓ 神庙挑战完成 +20XP" }
+        { t: 0, location: "小白的家", mood: "好奇", threat: "路由器出现陌生设备", event: "▶ 06:00 家庭网络出现不明设备" },
+        { t: 10, location: "咖啡厅", mood: "警惕", threat: "检测到 Evil Twin WiFi", event: "→ 06:10 进入咖啡厅" },
+        { t: 20, location: "咖啡厅", mood: "紧张", threat: "中间人攻击流量", event: "▶ 06:20 发现中间人攻击" },
+        { t: 30, location: "安全屋", mood: "放松", threat: null, event: "✓ 06:30 威胁已阻断" },
+        { t: 40, location: "职场", mood: "警惕", threat: "收到伪造CEO邮件", event: "▶ 06:40 收到可疑邮件" },
+        { t: 50, location: "神庙区", mood: "紧张", threat: "进入神庙挑战", event: "→ 06:50 进入神庙备战" },
+        { t: 60, location: "网络银行", mood: "危险", threat: "检测到ATM劫持装置", event: "▶ 07:00 ATM异常告警" },
+        { t: 70, location: "小白的家", mood: "自豪", threat: null, event: "✓ 07:10 本轮挑战完成" }
       ];
 
       const DEFAULT_STATE = {
@@ -596,98 +411,78 @@
         level: 3,
         location: "小白的家",
         mood: "好奇",
-        threat: "发现陌生设备连入家庭网络",
+        threat: "路由器出现陌生设备",
         resolved_threats: 35,
-        last_event: "▶ 家庭网络出现不明设备",
+        last_event: "▶ 06:00 家庭网络出现不明设备",
         last_updated: new Date().toISOString()
       };
 
+      const bus = new Phaser.Events.EventEmitter();
+
+      const app = {
+        mode: "DEMO",
+        layer: "overworld",
+        state: { ...DEFAULT_STATE },
+        currentSceneId: "home",
+        pendingSceneId: null,
+        navigationBusy: false,
+        events: [],
+        demoTimer: null,
+        demoStart: Date.now(),
+        demoIndex: -1,
+        demoResolved: DEFAULT_STATE.resolved_threats,
+        demoLevel: DEFAULT_STATE.level,
+        liveSignature: "",
+        liveMisses: 0
+      };
+
+      let gameRef = null;
+      let overworldRef = null;
+      let indoorRef = null;
+
       const dom = {
+        worldTag: document.getElementById("worldTag"),
         modeBadge: document.getElementById("modeBadge"),
         nameLevel: document.getElementById("nameLevel"),
-        resolvedCount: document.getElementById("resolvedCount"),
-        locationIcon: document.getElementById("locationIcon"),
+        floorText: document.getElementById("floorText"),
         locationText: document.getElementById("locationText"),
         moodText: document.getElementById("moodText"),
         threatText: document.getElementById("threatText"),
         hpBar: document.getElementById("hpBar"),
+        hpValue: document.getElementById("hpValue"),
         xpBar: document.getElementById("xpBar"),
-        eventsList: document.getElementById("eventsList"),
-        updatedText: document.getElementById("updatedText")
+        xpValue: document.getElementById("xpValue"),
+        resolvedCount: document.getElementById("resolvedCount"),
+        updatedText: document.getElementById("updatedText"),
+        eventsList: document.getElementById("eventsList")
       };
 
-      let appMode = "DEMO";
-      let worldState = { ...DEFAULT_STATE };
-      let eventsFeed = [];
-      let worldSceneRef = null;
-      let demoTimer = null;
-      let demoStartedAt = Date.now();
-      let demoStepIndex = -1;
-      let demoResolved = DEFAULT_STATE.resolved_threats;
-      let demoLevel = DEFAULT_STATE.level;
-      let liveSignature = "";
-      let liveMisses = 0;
-
-      function shiftColor(hexColor, delta) {
-        const rgb = Phaser.Display.Color.IntegerToRGB(hexColor);
-        return Phaser.Display.Color.GetColor(
-          Phaser.Math.Clamp(rgb.r + delta, 0, 255),
-          Phaser.Math.Clamp(rgb.g + delta, 0, 255),
-          Phaser.Math.Clamp(rgb.b + delta, 0, 255)
-        );
+      function clamp(v, min, max) {
+        return Math.max(min, Math.min(max, v));
       }
 
-      function getSceneIdByLocation(location) {
-        if (!location) return "home";
+      function resolveSceneId(location) {
         return LOCATION_MAP[location] || "home";
-      }
-
-      function getSceneMeta(sceneId) {
-        return BUILDING_DEFS[sceneId] || BUILDING_DEFS.home;
-      }
-
-      function moodToHP(mood) {
-        return MOOD_HP[mood] || 70;
-      }
-
-      function resolvedToXP(resolvedThreats) {
-        const value = Number.isFinite(Number(resolvedThreats)) ? Number(resolvedThreats) : 0;
-        return ((value * 10) % 100 + 100) % 100;
-      }
-
-      function normalizeState(input) {
-        const normalized = { ...worldState };
-
-        if (input.xiaobai_name) normalized.xiaobai_name = String(input.xiaobai_name);
-        if (Number.isFinite(Number(input.level))) normalized.level = Number(input.level);
-        if (input.location) normalized.location = String(input.location);
-        if (input.mood) normalized.mood = String(input.mood);
-        if (Object.prototype.hasOwnProperty.call(input, "threat")) {
-          normalized.threat = input.threat ? String(input.threat) : null;
-        }
-        if (Number.isFinite(Number(input.resolved_threats))) {
-          normalized.resolved_threats = Number(input.resolved_threats);
-        }
-        if (input.last_event) normalized.last_event = String(input.last_event);
-        normalized.last_updated = input.last_updated || new Date().toISOString();
-
-        return normalized;
-      }
-
-      function setMode(mode) {
-        appMode = mode;
-        dom.modeBadge.textContent = mode;
-        dom.modeBadge.classList.toggle("live", mode === "LIVE");
       }
 
       function formatTime(value) {
         try {
-          const date = new Date(value);
-          if (Number.isNaN(date.getTime())) return "--";
-          return date.toLocaleTimeString("zh-CN", { hour12: false });
+          const d = new Date(value);
+          if (Number.isNaN(d.getTime())) return "--:--:--";
+          return d.toLocaleTimeString("zh-CN", { hour12: false });
         } catch {
-          return "--";
+          return "--:--:--";
         }
+      }
+
+      function moodToSpeed(mood) {
+        if (mood === "危险" || mood === "恐慌") return 1.9;
+        if (mood === "警惕" || mood === "紧张") return 1.35;
+        return 1;
+      }
+
+      function resolvedToXp(resolved) {
+        return (((Number(resolved) || 0) * 10) % 100 + 100) % 100;
       }
 
       function classifyEvent(text) {
@@ -698,144 +493,915 @@
         return "info";
       }
 
-      function addEvent(eventText) {
-        if (!eventText) return;
+      function addEvent(text) {
+        if (!text) return;
         const now = new Date();
         const hh = String(now.getHours()).padStart(2, "0");
         const mm = String(now.getMinutes()).padStart(2, "0");
-        eventsFeed.unshift({
+        app.events.unshift({
           id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
           time: `${hh}:${mm}`,
-          text: eventText,
-          type: classifyEvent(eventText)
+          type: classifyEvent(text),
+          text
         });
-        eventsFeed = eventsFeed.slice(0, 16);
-        renderEvents();
+        app.events = app.events.slice(0, 18);
       }
 
       function renderEvents() {
         dom.eventsList.innerHTML = "";
-        for (const item of eventsFeed) {
+        for (const item of app.events) {
           const li = document.createElement("li");
           li.className = `event-item ${item.type}`;
 
-          const symbol = document.createElement("span");
-          symbol.className = "event-symbol";
-          symbol.textContent = item.type === "safe" ? "✓" : item.type === "move" ? "→" : item.type === "danger" ? "⚠" : "▶";
+          const mark = document.createElement("span");
+          mark.className = "event-mark";
+          mark.textContent = item.type === "safe" ? "✓" : item.type === "move" ? "→" : item.type === "danger" ? "⚠" : "▶";
 
           const text = document.createElement("span");
-          const clean = item.text.replace(/^[✓→▶⚠]\s*/, "");
-          text.textContent = `${item.time} ${clean}`;
+          text.textContent = `${item.time} ${item.text.replace(/^[✓→▶⚠]\s*/, "")}`;
 
-          li.appendChild(symbol);
+          li.appendChild(mark);
           li.appendChild(text);
           dom.eventsList.appendChild(li);
         }
       }
 
-      function updateHud(state) {
-        const sceneId = getSceneIdByLocation(state.location);
-        const sceneMeta = getSceneMeta(sceneId);
-        const moodEmoji = MOOD_ICON[state.mood] || "🫧";
-        const hp = moodToHP(state.mood);
-        const xp = resolvedToXP(state.resolved_threats);
+      function updateUI() {
+        const state = app.state;
+        const sceneId = resolveSceneId(state.location);
+        const building = BUILDINGS[sceneId] || BUILDINGS.home;
+        const mood = state.mood || "好奇";
+        const hp = clamp(MOOD_HP[mood] ?? 70, 0, 100);
+        const xp = clamp(resolvedToXp(state.resolved_threats), 0, 100);
 
         dom.nameLevel.textContent = `${state.xiaobai_name || "小白"} · Lv.${state.level || 1}`;
-        dom.resolvedCount.textContent = String(state.resolved_threats || 0);
-        dom.locationIcon.textContent = sceneMeta.icon;
-        dom.locationText.textContent = state.location || sceneMeta.name;
-        dom.moodText.textContent = `${moodEmoji} ${state.mood || "好奇"}`;
+        dom.modeBadge.textContent = app.mode;
+        dom.modeBadge.classList.toggle("live", app.mode === "LIVE");
+
+        const floorText = app.layer === "indoor" ? `${building.icon} ${building.roomName} · 室内` : "🌍 城市地图";
+        dom.floorText.textContent = floorText;
+
+        dom.locationText.textContent = `${building.icon} ${state.location || building.name}`;
+        dom.moodText.textContent = `${MOOD_ICON[mood] || "🫧"} ${mood}`;
 
         if (state.threat) {
           dom.threatText.classList.remove("safe");
           dom.threatText.textContent = `⚡ ${state.threat}`;
         } else {
           dom.threatText.classList.add("safe");
-          dom.threatText.textContent = "⚡ 暂无直接威胁";
+          dom.threatText.textContent = "⚡ 当前无威胁";
         }
 
-        dom.hpBar.style.width = `${Phaser.Math.Clamp(hp, 0, 100)}%`;
-        dom.xpBar.style.width = `${Phaser.Math.Clamp(xp, 0, 100)}%`;
-        dom.updatedText.textContent = `最后更新: ${formatTime(state.last_updated)} (${appMode})`;
+        dom.hpBar.style.width = `${hp}%`;
+        dom.hpValue.textContent = `${hp}%`;
+
+        dom.xpBar.style.width = `${xp}%`;
+        dom.xpValue.textContent = `${xp}%`;
+
+        dom.resolvedCount.textContent = String(state.resolved_threats || 0);
+        dom.updatedText.textContent = formatTime(state.last_updated);
+
+        dom.worldTag.textContent = app.layer === "indoor" ? "🦞 龙虾安全世界 v3 · 室内" : "🦞 龙虾安全世界 v3 · 城市";
+        renderEvents();
+      }
+
+      function normalizeState(input) {
+        const s = { ...app.state };
+        if (input.xiaobai_name) s.xiaobai_name = String(input.xiaobai_name);
+        if (Number.isFinite(Number(input.level))) s.level = Number(input.level);
+        if (input.location) s.location = String(input.location);
+        if (input.mood) s.mood = String(input.mood);
+        if (Object.prototype.hasOwnProperty.call(input, "threat")) {
+          s.threat = input.threat ? String(input.threat) : null;
+        }
+        if (Number.isFinite(Number(input.resolved_threats))) s.resolved_threats = Number(input.resolved_threats);
+        if (input.last_event) s.last_event = String(input.last_event);
+        s.last_updated = input.last_updated || new Date().toISOString();
+        return s;
+      }
+
+      function setMode(mode) {
+        app.mode = mode;
+        updateUI();
+      }
+
+      function buildGrid(width, height, fill) {
+        return Array.from({ length: height }, () => Array(width).fill(fill));
+      }
+
+      function paintRect(grid, x, y, w, h, val) {
+        for (let yy = y; yy < y + h; yy += 1) {
+          for (let xx = x; xx < x + w; xx += 1) {
+            if (yy >= 0 && yy < grid.length && xx >= 0 && xx < grid[0].length) {
+              grid[yy][xx] = val;
+            }
+          }
+        }
+      }
+
+      function paintRoad(grid, x1, y1, x2, y2, width, val) {
+        const half = Math.floor(width / 2);
+        if (x1 === x2) {
+          const [from, to] = y1 <= y2 ? [y1, y2] : [y2, y1];
+          for (let y = from; y <= to; y += 1) {
+            paintRect(grid, x1 - half, y - half, width, width, val);
+          }
+          return;
+        }
+        if (y1 === y2) {
+          const [from, to] = x1 <= x2 ? [x1, x2] : [x2, x1];
+          for (let x = from; x <= to; x += 1) {
+            paintRect(grid, x - half, y1 - half, width, width, val);
+          }
+        }
+      }
+
+      function tileToWorld(tx, ty) {
+        return { x: tx * TILE * SCALE + TILE, y: ty * TILE * SCALE + TILE };
+      }
+
+      function getEntranceTxTy(sceneId) {
+        const b = BUILDINGS[sceneId] || BUILDINGS.home;
+        return {
+          tx: Math.floor(b.tx + b.tw / 2),
+          ty: b.ty + b.th
+        };
+      }
+
+      class BootScene extends Phaser.Scene {
+        constructor() {
+          super("BootScene");
+        }
+
+        preload() {
+          const w = this.scale.width;
+          const h = this.scale.height;
+          const barBg = this.add.rectangle(w / 2, h / 2, 320, 20, 0x1f2d42).setStrokeStyle(2, 0x5ea5ff, 0.8);
+          const bar = this.add.rectangle(w / 2 - 156, h / 2, 8, 12, 0x00d4ff).setOrigin(0, 0.5);
+          const label = this.add.text(w / 2, h / 2 - 30, "加载像素世界资源...", {
+            fontFamily: "monospace",
+            fontSize: "16px",
+            color: "#d7edff"
+          }).setOrigin(0.5);
+
+          this.load.on("progress", (p) => {
+            bar.width = 312 * p;
+          });
+
+          this.load.on("complete", () => {
+            barBg.destroy();
+            bar.destroy();
+            label.destroy();
+          });
+
+          this.load.image("tileset-outdoor", "assets/kenney/tiny-town/tilemap_packed.png");
+          this.load.image("tileset-indoor", "assets/kenney/tiny-dungeon/tilemap_packed.png");
+          this.load.spritesheet("tileset-outdoor-sprites", "assets/kenney/tiny-town/tilemap_packed.png", {
+            frameWidth: 16,
+            frameHeight: 16
+          });
+          this.load.spritesheet("tileset-indoor-sprites", "assets/kenney/tiny-dungeon/tilemap_packed.png", {
+            frameWidth: 16,
+            frameHeight: 16
+          });
+          this.load.spritesheet("xiaobai", "assets/kenney/tiny-tales/character_0011.png", {
+            frameWidth: 16,
+            frameHeight: 16
+          });
+        }
+
+        create() {
+          const makeAnim = (key, frames, frameRate = 8) => {
+            if (this.anims.exists(key)) return;
+            this.anims.create({
+              key,
+              frames: frames.map((f) => ({ key: "xiaobai", frame: f })),
+              frameRate,
+              repeat: -1
+            });
+          };
+
+          makeAnim("walk-down", [104, 105, 106], 8);
+          makeAnim("walk-side", [104, 105, 106], 8);
+          makeAnim("walk-up", [116, 117, 118], 8);
+
+          if (!this.anims.exists("idle-down")) {
+            this.anims.create({ key: "idle-down", frames: [{ key: "xiaobai", frame: 104 }], frameRate: 1, repeat: -1 });
+          }
+          if (!this.anims.exists("idle-up")) {
+            this.anims.create({ key: "idle-up", frames: [{ key: "xiaobai", frame: 116 }], frameRate: 1, repeat: -1 });
+          }
+
+          this.scene.start("OverworldScene");
+          this.scene.launch("UIScene");
+        }
+      }
+
+      class OverworldScene extends Phaser.Scene {
+        constructor() {
+          super("OverworldScene");
+          this.player = null;
+          this.playerShell = null;
+          this.playerClaws = null;
+          this.moveTween = null;
+          this.stressTween = null;
+          this.templeTorches = [];
+          this.currentAnim = "idle-down";
+        }
+
+        create() {
+          overworldRef = this;
+          this.buildMap();
+          this.buildBuildingsLabel();
+          this.buildPlayer();
+          this.buildTempleFire();
+
+          this.cameras.main.setBackgroundColor("#050d1a");
+          this.cameras.main.setBounds(0, 0, OW_W * TILE * SCALE, OW_H * TILE * SCALE);
+          this.cameras.main.startFollow(this.playerShell, true, 0.09, 0.09);
+          this.cameras.main.setRoundPixels(true);
+
+          this.applyMood(app.state.mood);
+        }
+
+        buildMap() {
+          const floorTile = 0;
+          const floorAlt = 1;
+          const roadTile = 24;
+          const roadAlt = 25;
+
+          const ground = buildGrid(OW_W, OW_H, floorTile);
+          const road = buildGrid(OW_W, OW_H, -1);
+          const decor = buildGrid(OW_W, OW_H, -1);
+          const buildings = buildGrid(OW_W, OW_H, -1);
+
+          for (let y = 0; y < OW_H; y += 1) {
+            for (let x = 0; x < OW_W; x += 1) {
+              if ((x + y) % 5 === 0) ground[y][x] = floorAlt;
+            }
+          }
+
+          const links = [
+            ["home", "cafe"],
+            ["home", "office"],
+            ["office", "temple"],
+            ["temple", "market"],
+            ["market", "cafe"],
+            ["market", "social"],
+            ["social", "bank"],
+            ["market", "shelter"],
+            ["shelter", "bank"]
+          ];
+
+          for (const [fromId, toId] of links) {
+            const from = getEntranceTxTy(fromId);
+            const to = getEntranceTxTy(toId);
+            paintRoad(road, from.tx, from.ty, from.tx, to.ty, 2, roadTile);
+            paintRoad(road, from.tx, to.ty, to.tx, to.ty, 2, roadAlt);
+          }
+
+          const styleMap = {
+            home: { roof: 49, wall: 37, door: 61 },
+            cafe: { roof: 50, wall: 38, door: 61 },
+            office: { roof: 52, wall: 40, door: 61 },
+            market: { roof: 53, wall: 41, door: 61 },
+            social: { roof: 51, wall: 39, door: 61 },
+            bank: { roof: 54, wall: 42, door: 61 },
+            temple: { roof: 55, wall: 43, door: 61 },
+            shelter: { roof: 56, wall: 44, door: 61 }
+          };
+
+          Object.values(BUILDINGS).forEach((b) => {
+            const style = styleMap[b.id] || styleMap.home;
+            for (let yy = 0; yy < b.th; yy += 1) {
+              for (let xx = 0; xx < b.tw; xx += 1) {
+                const tx = b.tx + xx;
+                const ty = b.ty + yy;
+                if (yy < 2) buildings[ty][tx] = style.roof;
+                else buildings[ty][tx] = style.wall;
+              }
+            }
+            const doorX = b.tx + Math.floor(b.tw / 2);
+            const doorY = b.ty + b.th - 1;
+            buildings[doorY][doorX] = style.door;
+          });
+
+          const treeTiles = [2, 3, 14, 15, 16, 17];
+          const benchTiles = [88, 89];
+          const lampTiles = [58, 59];
+          const flowerTiles = [80, 81, 82, 83];
+
+          for (let x = 1; x < OW_W - 1; x += 2) {
+            decor[1][x] = treeTiles[x % treeTiles.length];
+            decor[OW_H - 2][x] = treeTiles[(x + 3) % treeTiles.length];
+          }
+          for (let y = 2; y < OW_H - 2; y += 3) {
+            decor[y][1] = treeTiles[(y + 1) % treeTiles.length];
+            decor[y][OW_W - 2] = treeTiles[(y + 2) % treeTiles.length];
+          }
+
+          [[10, 10], [20, 10], [30, 10], [20, 18], [31, 18]].forEach(([x, y], i) => {
+            decor[y][x] = lampTiles[i % lampTiles.length];
+          });
+
+          [[9, 18], [17, 19], [27, 5], [34, 6]].forEach(([x, y], i) => {
+            decor[y][x] = benchTiles[i % benchTiles.length];
+            decor[y + 1][x] = flowerTiles[(i + 1) % flowerTiles.length];
+          });
+
+          const map = this.make.tilemap({
+            width: OW_W,
+            height: OW_H,
+            tileWidth: TILE,
+            tileHeight: TILE
+          });
+          const tileset = map.addTilesetImage("tileset-outdoor", null, TILE, TILE, 0, 0);
+
+          this.groundLayer = map.createBlankLayer("ground", tileset, 0, 0);
+          this.roadLayer = map.createBlankLayer("road", tileset, 0, 0);
+          this.decorLayer = map.createBlankLayer("decor", tileset, 0, 0);
+          this.buildingLayer = map.createBlankLayer("building", tileset, 0, 0);
+
+          const applyData = (layer, data) => {
+            for (let y = 0; y < data.length; y += 1) {
+              for (let x = 0; x < data[y].length; x += 1) {
+                const idx = data[y][x];
+                if (idx >= 0) layer.putTileAt(idx, x, y);
+              }
+            }
+          };
+
+          applyData(this.groundLayer, ground);
+          applyData(this.roadLayer, road);
+          applyData(this.decorLayer, decor);
+          applyData(this.buildingLayer, buildings);
+
+          [this.groundLayer, this.roadLayer, this.decorLayer, this.buildingLayer].forEach((layer) => {
+            layer.setScale(SCALE);
+            layer.setDepth(1);
+          });
+
+          this.roadLayer.setDepth(2);
+          this.decorLayer.setDepth(3);
+          this.buildingLayer.setDepth(4);
+        }
+
+        buildBuildingsLabel() {
+          for (const b of Object.values(BUILDINGS)) {
+            const p = tileToWorld(b.tx + b.tw / 2, b.ty - 0.3);
+            this.add.text(p.x, p.y, `${b.icon} ${b.name}`, {
+              fontFamily: "monospace",
+              fontSize: "12px",
+              color: "#ffffff",
+              stroke: "#000000",
+              strokeThickness: 3
+            }).setOrigin(0.5).setDepth(12);
+          }
+        }
+
+        buildPlayer() {
+          const start = getEntranceTxTy("home");
+          const world = tileToWorld(start.tx, start.ty);
+
+          this.player = this.add.sprite(0, 0, "xiaobai", 104).setScale(2).setDepth(30);
+          this.player.setOrigin(0.5, 0.75);
+          this.player.play("idle-down");
+
+          this.playerClaws = this.add.graphics();
+          this.playerClaws.fillStyle(0xff5f40, 0.95);
+          this.playerClaws.fillRect(-12, -10, 5, 3);
+          this.playerClaws.fillRect(7, -10, 5, 3);
+          this.playerClaws.fillStyle(0xffc3b8, 0.7);
+          this.playerClaws.fillRect(-4, -13, 3, 2);
+          this.playerClaws.fillRect(1, -13, 3, 2);
+
+          this.playerShell = this.add.container(world.x, world.y, [this.player, this.playerClaws]);
+          this.playerShell.setDepth(30);
+        }
+
+        buildTempleFire() {
+          const temple = BUILDINGS.temple;
+          const points = [
+            tileToWorld(temple.tx - 1, temple.ty + 1),
+            tileToWorld(temple.tx + temple.tw + 1, temple.ty + 1),
+            tileToWorld(temple.tx - 1, temple.ty + temple.th - 1),
+            tileToWorld(temple.tx + temple.tw + 1, temple.ty + temple.th - 1)
+          ];
+
+          for (const p of points) {
+            const torch = this.add.sprite(p.x, p.y, "tileset-outdoor-sprites", 71).setScale(2).setDepth(15);
+            this.templeTorches.push(torch);
+            this.tweens.add({
+              targets: torch,
+              alpha: { from: 0.5, to: 1 },
+              duration: 180,
+              yoyo: true,
+              repeat: -1
+            });
+          }
+        }
+
+        applyMood(mood) {
+          const speed = moodToSpeed(mood);
+          this.player.anims.timeScale = speed;
+
+          if (this.stressTween) {
+            this.stressTween.stop();
+            this.stressTween = null;
+            this.playerShell.x = Math.round(this.playerShell.x);
+          }
+
+          if (mood === "危险" || mood === "恐慌") {
+            this.stressTween = this.tweens.add({
+              targets: this.playerShell,
+              x: this.playerShell.x + 2,
+              yoyo: true,
+              duration: 50,
+              repeat: -1,
+              onUpdate: () => {
+                this.playerShell.x = Math.round(this.playerShell.x);
+              }
+            });
+          }
+        }
+
+        playWalkAnim(dx, dy) {
+          if (Math.abs(dx) > Math.abs(dy)) {
+            this.player.play("walk-side", true);
+            this.player.setFlipX(dx < 0);
+            this.currentAnim = "walk-side";
+          } else if (dy < 0) {
+            this.player.play("walk-up", true);
+            this.player.setFlipX(false);
+            this.currentAnim = "walk-up";
+          } else {
+            this.player.play("walk-down", true);
+            this.player.setFlipX(false);
+            this.currentAnim = "walk-down";
+          }
+        }
+
+        setIdleFromMove() {
+          if (this.currentAnim === "walk-up") {
+            this.player.play("idle-up", true);
+          } else {
+            this.player.play("idle-down", true);
+          }
+        }
+
+        moveXiaobaiTo(sceneId, done) {
+          const entrance = getEntranceTxTy(sceneId);
+          const target = tileToWorld(entrance.tx, entrance.ty);
+          const dx = target.x - this.playerShell.x;
+          const dy = target.y - this.playerShell.y;
+
+          if (Math.hypot(dx, dy) < 2) {
+            if (done) done();
+            return;
+          }
+
+          if (this.moveTween) this.moveTween.stop();
+          this.playWalkAnim(dx, dy);
+          this.applyMood(app.state.mood);
+
+          const speed = moodToSpeed(app.state.mood);
+          this.moveTween = this.tweens.add({
+            targets: this.playerShell,
+            x: target.x,
+            y: target.y,
+            duration: Math.max(700, Math.floor(2000 / speed)),
+            ease: "Power2",
+            onComplete: () => {
+              this.setIdleFromMove();
+              this.tweens.add({
+                targets: this.playerShell,
+                scaleX: { from: 0.92, to: 1.06 },
+                scaleY: { from: 0.92, to: 1.06 },
+                duration: 85,
+                yoyo: true,
+                repeat: 1,
+                onComplete: () => {
+                  this.playerShell.setScale(1);
+                  if (done) done();
+                }
+              });
+            }
+          });
+        }
+
+        enterIndoor(roomId, done) {
+          this.cameras.main.fadeOut(300, 0, 0, 0);
+          this.cameras.main.once("camerafadeoutcomplete", () => {
+            this.scene.launch("IndoorScene", { roomId });
+            this.cameras.main.fadeIn(300, 0, 0, 0);
+            if (done) done();
+          });
+        }
+
+        getPlayerState() {
+          return {
+            x: Math.round(this.playerShell.x),
+            y: Math.round(this.playerShell.y)
+          };
+        }
+      }
+
+      class IndoorScene extends Phaser.Scene {
+        constructor() {
+          super("IndoorScene");
+          this.roomId = "home";
+          this.player = null;
+          this.playerShell = null;
+          this.playerClaws = null;
+          this.centerPulse = null;
+          this.npc = null;
+          this.npcOrbitTween = null;
+          this.npcOrbit = { angle: 0, radius: 56 };
+          this.stressTween = null;
+        }
+
+        init(data) {
+          this.roomId = data.roomId || "home";
+        }
+
+        create() {
+          indoorRef = this;
+          this.cameras.main.setBackgroundColor("#050913");
+
+          this.buildRoom(this.roomId);
+          this.buildPlayer();
+          this.cameras.main.fadeIn(300, 0, 0, 0);
+
+          this.applyMood(app.state.mood);
+          this.updateThreat(app.state.threat);
+
+          const center = tileToWorld(10, 7);
+          this.tweens.add({
+            targets: this.playerShell,
+            x: center.x,
+            y: center.y,
+            duration: 900,
+            ease: "Sine.Out",
+            onStart: () => this.playWalk("down"),
+            onComplete: () => this.player.play("idle-down", true)
+          });
+        }
+
+        shutdownScene() {
+          if (this.npcOrbitTween) this.npcOrbitTween.stop();
+          this.npcOrbitTween = null;
+          this.npc = null;
+          indoorRef = null;
+        }
+
+        buildRoom(roomId) {
+          const floor = buildGrid(IN_W, IN_H, 0);
+          const walls = buildGrid(IN_W, IN_H, -1);
+          const furniture = buildGrid(IN_W, IN_H, -1);
+
+          for (let y = 0; y < IN_H; y += 1) {
+            for (let x = 0; x < IN_W; x += 1) {
+              if ((x + y) % 4 === 0) floor[y][x] = 1;
+            }
+          }
+
+          for (let x = 0; x < IN_W; x += 1) {
+            walls[0][x] = 24;
+            walls[IN_H - 1][x] = 24;
+          }
+          for (let y = 0; y < IN_H; y += 1) {
+            walls[y][0] = 24;
+            walls[y][IN_W - 1] = 24;
+          }
+
+          const p = {
+            home: () => {
+              paintRect(floor, 1, 1, 18, 12, 2);
+              paintRect(furniture, 2, 2, 2, 3, 80);
+              paintRect(furniture, 3, 7, 3, 2, 81);
+              paintRect(furniture, 13, 2, 3, 2, 82);
+              paintRect(furniture, 14, 9, 3, 2, 83);
+              furniture[8][10] = 84;
+              this.add.text(190, 36, "🏠 小白的家", { fontFamily: "monospace", fontSize: "12px", color: "#ffe8c6" }).setOrigin(0.5).setDepth(15);
+
+              const cat = this.add.text(188, 262, "🐈", { fontSize: "18px" }).setDepth(17);
+              this.tweens.add({ targets: cat, scaleX: 1.08, scaleY: 1.08, yoyo: true, repeat: -1, duration: 900 });
+            },
+            cafe: () => {
+              paintRect(floor, 1, 1, 18, 12, 4);
+              paintRect(furniture, 2, 3, 5, 2, 85);
+              paintRect(furniture, 7, 6, 3, 2, 86);
+              paintRect(furniture, 12, 6, 3, 2, 86);
+              paintRect(furniture, 15, 2, 2, 2, 87);
+              this.add.text(190, 36, "☕ 咖啡厅", { fontFamily: "monospace", fontSize: "12px", color: "#f6d9be" }).setOrigin(0.5).setDepth(15);
+
+              const wifi = this.add.circle(504, 126, 10, 0x67c8ff, 0.16).setDepth(18);
+              this.tweens.add({ targets: wifi, scaleX: 1.8, scaleY: 1.8, alpha: 0, duration: 1200, repeat: -1 });
+            },
+            office: () => {
+              paintRect(floor, 1, 1, 18, 12, 6);
+              paintRect(furniture, 2, 3, 3, 2, 90);
+              paintRect(furniture, 6, 3, 3, 2, 90);
+              paintRect(furniture, 10, 3, 3, 2, 90);
+              paintRect(furniture, 14, 3, 3, 2, 90);
+              paintRect(furniture, 14, 8, 3, 2, 91);
+              paintRect(furniture, 4, 9, 2, 2, 92);
+              this.add.text(190, 36, "🏢 职场", { fontFamily: "monospace", fontSize: "12px", color: "#d4e9ff" }).setOrigin(0.5).setDepth(15);
+              this.add.text(472, 62, "⚠️ 安全提醒", { fontFamily: "monospace", fontSize: "11px", color: "#ffde96" }).setDepth(18);
+            },
+            temple: () => {
+              paintRect(floor, 1, 1, 18, 12, 8);
+              paintRect(furniture, 4, 2, 1, 9, 93);
+              paintRect(furniture, 15, 2, 1, 9, 93);
+              paintRect(furniture, 9, 5, 2, 2, 94);
+              paintRect(furniture, 9, 2, 2, 2, 95);
+              this.add.text(190, 36, "🏛 神庙区", { fontFamily: "monospace", fontSize: "12px", color: "#ffeab0" }).setOrigin(0.5).setDepth(15);
+
+              const altar = this.add.circle(320, 224, 28, 0xf8c84a, 0.16).setDepth(16);
+              this.centerPulse = this.tweens.add({ targets: altar, scaleX: 1.5, scaleY: 1.5, alpha: 0.05, duration: 1000, yoyo: true, repeat: -1 });
+
+              const gold = this.add.particles(320, 224, "tileset-indoor-sprites", {
+                frame: 105,
+                lifespan: 900,
+                speed: { min: 12, max: 36 },
+                quantity: 1,
+                frequency: 80,
+                scale: { start: 1.1, end: 0 },
+                alpha: { start: 0.9, end: 0 },
+                blendMode: "ADD"
+              });
+              gold.setDepth(20);
+            },
+            bank: () => {
+              paintRect(floor, 1, 1, 18, 12, 10);
+              paintRect(furniture, 2, 3, 14, 2, 96);
+              paintRect(furniture, 4, 8, 2, 2, 97);
+              paintRect(furniture, 7, 8, 2, 2, 97);
+              paintRect(furniture, 10, 8, 2, 2, 97);
+              paintRect(furniture, 15, 8, 2, 3, 98);
+              this.add.text(190, 36, "🏦 网络银行", { fontFamily: "monospace", fontSize: "12px", color: "#f6f2dc" }).setOrigin(0.5).setDepth(15);
+            },
+            shelter: () => {
+              paintRect(floor, 1, 1, 18, 12, 12);
+              paintRect(furniture, 8, 5, 4, 4, 99);
+              paintRect(furniture, 3, 3, 3, 2, 100);
+              paintRect(furniture, 14, 3, 3, 2, 100);
+              paintRect(furniture, 14, 9, 2, 2, 101);
+              this.add.text(190, 36, "🛡 安全屋", { fontFamily: "monospace", fontSize: "12px", color: "#d8ffe7" }).setOrigin(0.5).setDepth(15);
+
+              const calm = this.add.circle(320, 224, 42, 0x3effaa, 0.08).setDepth(16);
+              this.tweens.add({ targets: calm, scaleX: 1.5, scaleY: 1.5, alpha: 0.02, duration: 1100, yoyo: true, repeat: -1 });
+            },
+            market: () => {
+              paintRect(floor, 1, 1, 18, 12, 4);
+              paintRect(furniture, 4, 5, 12, 3, 102);
+              this.add.text(190, 36, "🛒 网购广场", { fontFamily: "monospace", fontSize: "12px", color: "#d2ffe8" }).setOrigin(0.5).setDepth(15);
+            },
+            social: () => {
+              paintRect(floor, 1, 1, 18, 12, 7);
+              paintRect(furniture, 5, 4, 10, 3, 103);
+              this.add.text(190, 36, "📱 社交广场", { fontFamily: "monospace", fontSize: "12px", color: "#ecd7ff" }).setOrigin(0.5).setDepth(15);
+            }
+          };
+
+          (p[roomId] || p.home)();
+
+          const map = this.make.tilemap({ width: IN_W, height: IN_H, tileWidth: TILE, tileHeight: TILE });
+          const tileset = map.addTilesetImage("tileset-indoor", null, TILE, TILE, 0, 0);
+
+          const floorLayer = map.createBlankLayer("floor", tileset, 0, 0);
+          const wallLayer = map.createBlankLayer("wall", tileset, 0, 0);
+          const furnLayer = map.createBlankLayer("furn", tileset, 0, 0);
+
+          const applyData = (layer, data) => {
+            for (let y = 0; y < data.length; y += 1) {
+              for (let x = 0; x < data[y].length; x += 1) {
+                if (data[y][x] >= 0) layer.putTileAt(data[y][x], x, y);
+              }
+            }
+          };
+
+          applyData(floorLayer, floor);
+          applyData(wallLayer, walls);
+          applyData(furnLayer, furniture);
+
+          [floorLayer, wallLayer, furnLayer].forEach((layer, idx) => {
+            layer.setScale(SCALE);
+            layer.setDepth(2 + idx);
+          });
+
+          this.cameras.main.setBounds(0, 0, IN_W * TILE * SCALE, IN_H * TILE * SCALE);
+          this.cameras.main.setZoom(1);
+          this.cameras.main.centerOn(IN_W * TILE, IN_H * TILE);
+        }
+
+        buildPlayer() {
+          const spawn = tileToWorld(10, 12.3);
+          this.player = this.add.sprite(0, 0, "xiaobai", 104).setScale(2).setDepth(30);
+          this.player.setOrigin(0.5, 0.75);
+          this.player.play("idle-down");
+
+          this.playerClaws = this.add.graphics();
+          this.playerClaws.fillStyle(0xff5f40, 0.95);
+          this.playerClaws.fillRect(-12, -10, 5, 3);
+          this.playerClaws.fillRect(7, -10, 5, 3);
+
+          this.playerShell = this.add.container(spawn.x, spawn.y, [this.player, this.playerClaws]).setDepth(30);
+        }
+
+        playWalk(direction) {
+          if (direction === "up") {
+            this.player.play("walk-up", true);
+            this.player.setFlipX(false);
+          } else if (direction === "left") {
+            this.player.play("walk-side", true);
+            this.player.setFlipX(true);
+          } else if (direction === "right") {
+            this.player.play("walk-side", true);
+            this.player.setFlipX(false);
+          } else {
+            this.player.play("walk-down", true);
+            this.player.setFlipX(false);
+          }
+        }
+
+        applyMood(mood) {
+          this.player.anims.timeScale = moodToSpeed(mood);
+
+          if (this.stressTween) {
+            this.stressTween.stop();
+            this.stressTween = null;
+          }
+
+          if (mood === "危险" || mood === "恐慌") {
+            this.stressTween = this.tweens.add({
+              targets: this.playerShell,
+              x: this.playerShell.x + 2,
+              yoyo: true,
+              duration: 55,
+              repeat: -1
+            });
+          }
+        }
+
+        updateThreat(threatText) {
+          if (this.npcOrbitTween) {
+            this.npcOrbitTween.stop();
+            this.npcOrbitTween = null;
+          }
+          if (this.npc) {
+            this.npc.destroy();
+            this.npc = null;
+          }
+
+          if (!threatText || this.roomId === "shelter") return;
+
+          const origin = tileToWorld(10, 6.5);
+          const npc = this.add.container(origin.x + this.npcOrbit.radius, origin.y).setDepth(35);
+
+          const body = this.add.circle(0, 0, 16, 0x6a2cd8, 0.9);
+          const aura = this.add.circle(0, 0, 22, 0x6a2cd8, 0.22);
+          const icon = this.add.text(0, -1, this.roomId === "office" ? "✉" : this.roomId === "bank" ? "☠" : "?", {
+            fontFamily: "monospace",
+            fontSize: "16px",
+            color: "#ffffff"
+          }).setOrigin(0.5);
+
+          npc.add([aura, body, icon]);
+          this.npc = npc;
+          this.npcOrbit = { angle: 0, radius: 56, ox: origin.x, oy: origin.y };
+
+          this.npcOrbitTween = this.tweens.add({
+            targets: this.npcOrbit,
+            angle: 360,
+            duration: 3600,
+            repeat: -1,
+            ease: "Linear",
+            onUpdate: () => {
+              const rad = Phaser.Math.DegToRad(this.npcOrbit.angle);
+              npc.setPosition(
+                this.npcOrbit.ox + Math.cos(rad) * this.npcOrbit.radius,
+                this.npcOrbit.oy + Math.sin(rad) * this.npcOrbit.radius * 0.6
+              );
+            }
+          });
+        }
+
+        exitToOverworld(done) {
+          this.cameras.main.fadeOut(300, 0, 0, 0);
+          this.cameras.main.once("camerafadeoutcomplete", () => {
+            this.shutdownScene();
+            this.scene.stop();
+            if (done) done();
+          });
+        }
+
+        getPlayerState() {
+          return {
+            x: Math.round(this.playerShell.x),
+            y: Math.round(this.playerShell.y)
+          };
+        }
+      }
+
+      class UIScene extends Phaser.Scene {
+        constructor() {
+          super("UIScene");
+        }
+
+        create() {
+          bus.on("ui:update", updateUI);
+          this.events.on("shutdown", () => {
+            bus.off("ui:update", updateUI);
+          });
+          updateUI();
+        }
+      }
+
+      function applyMoodToActiveScenes(mood) {
+        if (overworldRef) overworldRef.applyMood(mood);
+        if (indoorRef) indoorRef.applyMood(mood);
+      }
+
+      function applyThreatToIndoor(threatText) {
+        if (indoorRef) indoorRef.updateThreat(threatText);
+      }
+
+      function requestNavigation(sceneId) {
+        app.pendingSceneId = sceneId;
+        processNavigation();
+      }
+
+      function processNavigation() {
+        if (app.navigationBusy) return;
+        if (!app.pendingSceneId) return;
+        if (!overworldRef) return;
+
+        const target = app.pendingSceneId;
+        app.pendingSceneId = null;
+
+        const wantsIndoor = INDOOR_ROOMS.has(target);
+
+        const finish = () => {
+          app.currentSceneId = target;
+          app.layer = wantsIndoor ? "indoor" : "overworld";
+          app.navigationBusy = false;
+          bus.emit("ui:update");
+          processNavigation();
+        };
+
+        const moveOnOverworld = () => {
+          app.layer = "overworld";
+          bus.emit("ui:update");
+          overworldRef.moveXiaobaiTo(target, () => {
+            if (wantsIndoor) {
+              overworldRef.enterIndoor(target, () => {
+                finish();
+                applyThreatToIndoor(app.state.threat);
+                applyMoodToActiveScenes(app.state.mood);
+              });
+            } else {
+              finish();
+            }
+          });
+        };
+
+        app.navigationBusy = true;
+
+        if (app.layer === "indoor" && indoorRef) {
+          indoorRef.exitToOverworld(moveOnOverworld);
+        } else {
+          moveOnOverworld();
+        }
       }
 
       function applyState(input, options = {}) {
+        const prev = app.state;
         const next = normalizeState(input);
-        const previous = worldState;
-        worldState = next;
+        app.state = next;
 
-        updateHud(worldState);
+        const prevScene = resolveSceneId(prev.location);
+        const nextScene = resolveSceneId(next.location);
+        const locationChanged = prevScene !== nextScene;
 
-        const shouldEmitEvent = options.forceEvent || (options.eventText && options.eventText !== previous.last_event);
-        if (shouldEmitEvent) {
-          addEvent(options.eventText || worldState.last_event);
+        if (options.forceEvent || (options.eventText && options.eventText !== prev.last_event)) {
+          addEvent(options.eventText || next.last_event);
         }
 
-        if (worldSceneRef) {
-          worldSceneRef.applyWorldState(worldState, {
-            eventText: shouldEmitEvent ? options.eventText || worldState.last_event : null,
-            skipMovement: Boolean(options.skipMovement)
-          });
+        applyMoodToActiveScenes(next.mood);
+        applyThreatToIndoor(next.threat);
+
+        if (locationChanged || options.forceNavigate) {
+          requestNavigation(nextScene);
         }
-      }
 
-      function startDemoLoop() {
-        if (demoTimer) return;
-
-        demoStepIndex = -1;
-        demoResolved = DEFAULT_STATE.resolved_threats;
-        demoLevel = DEFAULT_STATE.level;
-        demoStartedAt = Date.now();
-
-        demoTimer = window.setInterval(() => {
-          if (appMode !== "DEMO") return;
-
-          const elapsed = ((Date.now() - demoStartedAt) / 1000) % 60;
-          let index = 0;
-          for (let i = 0; i < DEMO_SCRIPT.length; i += 1) {
-            if (elapsed >= DEMO_SCRIPT[i].t) index = i;
-          }
-
-          if (index < demoStepIndex) {
-            demoStepIndex = -1;
-            demoResolved = DEFAULT_STATE.resolved_threats;
-            demoLevel = DEFAULT_STATE.level;
-          }
-
-          if (index === demoStepIndex) return;
-          demoStepIndex = index;
-
-          const step = DEMO_SCRIPT[index];
-          if (step.event.startsWith("✓")) {
-            demoResolved += step.event.includes("+20XP") ? 2 : 1;
-            if (step.event.includes("+20XP")) {
-              demoLevel += 1;
-            }
-          }
-
-          applyState(
-            {
-              xiaobai_name: "小白",
-              level: demoLevel,
-              location: step.location,
-              mood: step.mood,
-              threat: step.threat,
-              resolved_threats: demoResolved,
-              last_event: step.event,
-              last_updated: new Date().toISOString()
-            },
-            {
-              eventText: step.event,
-              forceEvent: true
-            }
-          );
-        }, 250);
+        bus.emit("ui:update");
       }
 
       async function fetchWorldState() {
         try {
           const res = await fetch(`world-state.json?t=${Date.now()}`, { cache: "no-store" });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          if (!res.ok) throw new Error(String(res.status));
           return await res.json();
         } catch {
           return null;
@@ -844,20 +1410,20 @@
 
       async function pollWorldState() {
         const data = await fetchWorldState();
-
         if (!data) {
-          liveMisses += 1;
-          if (appMode === "LIVE" && liveMisses >= 3) {
+          app.liveMisses += 1;
+          if (app.mode === "LIVE" && app.liveMisses >= 3) {
             setMode("DEMO");
-            addEvent("→ world-state.json 暂不可用，切回 DEMO 模式");
+            addEvent("→ world-state.json 不可用，切换回 DEMO");
+            bus.emit("ui:update");
           }
           return;
         }
 
-        liveMisses = 0;
-        if (appMode !== "LIVE") {
+        app.liveMisses = 0;
+        if (app.mode !== "LIVE") {
           setMode("LIVE");
-          addEvent("✓ world-state.json 已接入，进入 LIVE 模式");
+          addEvent("✓ 已接入 world-state.json，进入 LIVE");
         }
 
         const signature = [
@@ -869,869 +1435,118 @@
           data.resolved_threats || ""
         ].join("|");
 
-        const changed = signature !== liveSignature;
-        liveSignature = signature;
+        const changed = signature !== app.liveSignature;
+        app.liveSignature = signature;
 
         applyState(
           {
-            xiaobai_name: data.xiaobai_name || worldState.xiaobai_name,
-            level: Number.isFinite(Number(data.level)) ? Number(data.level) : worldState.level,
-            location: data.location || worldState.location,
-            mood: data.mood || worldState.mood,
-            threat: Object.prototype.hasOwnProperty.call(data, "threat") ? data.threat : worldState.threat,
-            resolved_threats: Number.isFinite(Number(data.resolved_threats)) ? Number(data.resolved_threats) : worldState.resolved_threats,
-            last_event: data.last_event || worldState.last_event,
+            xiaobai_name: data.xiaobai_name || app.state.xiaobai_name,
+            level: Number.isFinite(Number(data.level)) ? Number(data.level) : app.state.level,
+            location: data.location || app.state.location,
+            mood: data.mood || app.state.mood,
+            threat: Object.prototype.hasOwnProperty.call(data, "threat") ? data.threat : app.state.threat,
+            resolved_threats: Number.isFinite(Number(data.resolved_threats)) ? Number(data.resolved_threats) : app.state.resolved_threats,
+            last_event: data.last_event || app.state.last_event,
             last_updated: data.last_updated || new Date().toISOString()
           },
           {
-            eventText: changed ? data.last_event || worldState.last_event : null,
-            forceEvent: false
+            eventText: changed ? data.last_event || app.state.last_event : null
           }
         );
       }
 
-      class WorldScene extends Phaser.Scene {
-        constructor() {
-          super("WorldScene");
-          this.buildings = {};
-          this.roadPaths = [];
-          this.dataPackets = [];
-          this.templeOrbiters = [];
-          this.starField = [];
-          this.currentBuildingId = null;
-          this.currentThreat = null;
-          this.xiaobaiRoot = null;
-          this.xiaobaiBody = null;
-          this.xiaobaiBodyContainer = null;
-          this.walkTween = null;
-          this.breathTween = null;
-          this.stressTween = null;
-          this.moodFlashTween = null;
-          this.moveTween = null;
-          this.npcOrbitTween = null;
-          this.threatNpc = null;
-          this.threatNpcOrbit = { angle: 0, radius: 36 };
-          this.speechBubble = null;
-          this.warningTween = null;
-          this.packetPhase = 0;
-          this.isDangerMood = false;
-          this.facing = 1;
-        }
+      function startDemoLoop() {
+        if (app.demoTimer) return;
+        app.demoStart = Date.now();
+        app.demoIndex = -1;
+        app.demoResolved = DEFAULT_STATE.resolved_threats;
+        app.demoLevel = DEFAULT_STATE.level;
 
-        preload() {}
+        app.demoTimer = window.setInterval(() => {
+          if (app.mode !== "DEMO") return;
 
-        create() {
-          this.buildPixelTextures();
-          this.buildStarField();
-          this.buildTilemap();
-          this.buildRoads();
-          this.buildBuildings();
-          this.buildTempleAura();
-          this.buildXiaobai();
-          this.buildDataPackets();
-          this.buildDangerEmitter();
-          this.setupCamera();
-
-          worldSceneRef = this;
-          this.applyWorldState(worldState, { eventText: worldState.last_event, skipMovement: true });
-        }
-
-        update(time, delta) {
-          this.updateRoadPackets(delta);
-          this.updateStars(time);
-          this.updateTempleOrbiters(delta);
-          this.updateThreatNpcPosition();
-          this.updateSpeechBubblePosition();
-        }
-
-        buildPixelTextures() {
-          const pixel = this.add.graphics();
-          pixel.fillStyle(COLORS.packet, 1);
-          pixel.fillRect(0, 0, 4, 4);
-          pixel.generateTexture("pixel-cyan", 4, 4);
-          pixel.clear();
-          pixel.fillStyle(COLORS.danger, 1);
-          pixel.fillRect(0, 0, 4, 4);
-          pixel.generateTexture("pixel-red", 4, 4);
-          pixel.clear();
-          pixel.fillStyle(COLORS.temple, 1);
-          pixel.fillRect(0, 0, 4, 4);
-          pixel.generateTexture("pixel-gold", 4, 4);
-          pixel.destroy();
-        }
-
-        buildStarField() {
-          const mapRect = new Phaser.Geom.Rectangle(MAP_OFFSET_X, MAP_OFFSET_Y, MAP_WIDTH, MAP_HEIGHT);
-          for (let i = 0; i < 150; i += 1) {
-            let x;
-            let y;
-            do {
-              x = Phaser.Math.Between(20, WORLD_WIDTH - 20);
-              y = Phaser.Math.Between(20, WORLD_HEIGHT - 20);
-            } while (Phaser.Geom.Rectangle.Contains(mapRect, x, y));
-
-            const star = this.add.circle(x, y, Phaser.Math.Between(1, 2), 0xdbeafe, Phaser.Math.FloatBetween(0.25, 0.65));
-            this.starField.push({
-              dot: star,
-              speed: Phaser.Math.FloatBetween(0.8, 1.6),
-              offset: Phaser.Math.FloatBetween(0, Math.PI * 2)
-            });
+          const elapsed = ((Date.now() - app.demoStart) / 1000) % 80;
+          let idx = 0;
+          for (let i = 0; i < DEMO_SCRIPT.length; i += 1) {
+            if (elapsed >= DEMO_SCRIPT[i].t) idx = i;
           }
-        }
 
-        updateStars(time) {
-          const t = time / 1000;
-          for (const star of this.starField) {
-            const alpha = 0.2 + ((Math.sin(t * star.speed + star.offset) + 1) * 0.5) * 0.45;
-            star.dot.setAlpha(alpha);
+          if (idx < app.demoIndex) {
+            app.demoIndex = -1;
+            app.demoResolved = DEFAULT_STATE.resolved_threats;
+            app.demoLevel = DEFAULT_STATE.level;
           }
-        }
+          if (idx === app.demoIndex) return;
 
-        buildTilemap() {
-          const g = this.add.graphics();
-          g.fillStyle(COLORS.bg, 1);
-          g.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+          app.demoIndex = idx;
+          const step = DEMO_SCRIPT[idx];
+          if (step.event.startsWith("✓")) app.demoResolved += 1;
 
-          for (let ty = 0; ty < MAP_TILES_H; ty += 1) {
-            for (let tx = 0; tx < MAP_TILES_W; tx += 1) {
-              const px = MAP_OFFSET_X + tx * TILE_SIZE;
-              const py = MAP_OFFSET_Y + ty * TILE_SIZE;
-              const jitter = Phaser.Math.Between(-4, 6);
-              g.fillStyle(shiftColor(COLORS.ground, jitter), 1);
-              g.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-
-              if ((tx + ty) % 3 === 0) {
-                g.fillStyle(0x040a14, 0.3);
-                g.fillRect(px + 2, py + 2, 4, 4);
-              }
-
-              if ((tx * ty) % 11 === 0) {
-                g.fillStyle(0x0f1f33, 0.4);
-                g.fillRect(px + 22, py + 22, 3, 3);
-              }
+          applyState(
+            {
+              xiaobai_name: "小白",
+              level: app.demoLevel,
+              location: step.location,
+              mood: step.mood,
+              threat: step.threat,
+              resolved_threats: app.demoResolved,
+              last_event: step.event,
+              last_updated: new Date().toISOString()
+            },
+            {
+              eventText: step.event,
+              forceEvent: true,
+              forceNavigate: true
             }
-          }
-
-          g.lineStyle(1, 0x0d2037, 0.45);
-          for (let tx = 0; tx <= MAP_TILES_W; tx += 1) {
-            const x = MAP_OFFSET_X + tx * TILE_SIZE;
-            g.beginPath();
-            g.moveTo(x, MAP_OFFSET_Y);
-            g.lineTo(x, MAP_OFFSET_Y + MAP_HEIGHT);
-            g.strokePath();
-          }
-          for (let ty = 0; ty <= MAP_TILES_H; ty += 1) {
-            const y = MAP_OFFSET_Y + ty * TILE_SIZE;
-            g.beginPath();
-            g.moveTo(MAP_OFFSET_X, y);
-            g.lineTo(MAP_OFFSET_X + MAP_WIDTH, y);
-            g.strokePath();
-          }
-        }
-
-        getBuildingRect(def) {
-          const x = MAP_OFFSET_X + def.tx * TILE_SIZE;
-          const y = MAP_OFFSET_Y + def.ty * TILE_SIZE;
-          const w = def.tw * TILE_SIZE;
-          const h = def.th * TILE_SIZE;
-          return { x, y, w, h };
-        }
-
-        getBuildingEntry(def) {
-          const rect = this.getBuildingRect(def);
-          return {
-            x: rect.x + rect.w / 2,
-            y: rect.y + rect.h + 18
-          };
-        }
-
-        buildRoads() {
-          const roadGraphics = this.add.graphics();
-
-          for (const [fromId, toId] of ROAD_LINKS) {
-            const a = this.getBuildingEntry(BUILDING_DEFS[fromId]);
-            const b = this.getBuildingEntry(BUILDING_DEFS[toId]);
-            const midY = (a.y + b.y) / 2;
-            const path = [
-              { x: a.x, y: a.y },
-              { x: a.x, y: midY },
-              { x: b.x, y: midY },
-              { x: b.x, y: b.y }
-            ];
-
-            this.drawRoadPath(roadGraphics, path);
-            this.roadPaths.push(this.prepareRoadPath(path));
-          }
-        }
-
-        drawRoadPath(g, points) {
-          for (let i = 1; i < points.length; i += 1) {
-            const p1 = points[i - 1];
-            const p2 = points[i];
-
-            if (p1.x === p2.x) {
-              const y = Math.min(p1.y, p2.y);
-              const h = Math.abs(p2.y - p1.y);
-              g.fillStyle(COLORS.road, 1);
-              g.fillRect(p1.x - 8, y, 16, h);
-              g.fillStyle(0x1f2937, 0.55);
-              g.fillRect(p1.x - 2, y, 4, h);
-            } else {
-              const x = Math.min(p1.x, p2.x);
-              const w = Math.abs(p2.x - p1.x);
-              g.fillStyle(COLORS.road, 1);
-              g.fillRect(x, p1.y - 8, w, 16);
-              g.fillStyle(0x1f2937, 0.55);
-              g.fillRect(x, p1.y - 2, w, 4);
-            }
-          }
-        }
-
-        prepareRoadPath(points) {
-          const segments = [];
-          let total = 0;
-
-          for (let i = 1; i < points.length; i += 1) {
-            const from = points[i - 1];
-            const to = points[i];
-            const length = Phaser.Math.Distance.Between(from.x, from.y, to.x, to.y);
-            total += length;
-            segments.push({ from, to, length, acc: total });
-          }
-
-          return { points, segments, totalLength: total || 1 };
-        }
-
-        getPointOnRoad(path, t) {
-          const target = Phaser.Math.Clamp(t, 0, 1) * path.totalLength;
-          for (const segment of path.segments) {
-            const startAcc = segment.acc - segment.length;
-            if (target <= segment.acc) {
-              const local = (target - startAcc) / (segment.length || 1);
-              return {
-                x: Phaser.Math.Interpolation.Linear([segment.from.x, segment.to.x], local),
-                y: Phaser.Math.Interpolation.Linear([segment.from.y, segment.to.y], local)
-              };
-            }
-          }
-          const last = path.points[path.points.length - 1];
-          return { x: last.x, y: last.y };
-        }
-
-        buildDataPackets() {
-          for (const path of this.roadPaths) {
-            const count = Phaser.Math.Between(2, 3);
-            for (let i = 0; i < count; i += 1) {
-              const dot = this.add.image(0, 0, "pixel-cyan").setAlpha(0.9);
-              dot.setScale(1 + Math.random() * 0.4);
-              this.dataPackets.push({
-                sprite: dot,
-                path,
-                speed: Phaser.Math.FloatBetween(0.06, 0.14),
-                offset: Math.random()
-              });
-            }
-          }
-        }
-
-        updateRoadPackets(delta) {
-          this.packetPhase += delta / 1000;
-          for (const packet of this.dataPackets) {
-            const t = (this.packetPhase * packet.speed + packet.offset) % 1;
-            const point = this.getPointOnRoad(packet.path, t);
-            packet.sprite.setPosition(point.x, point.y);
-          }
-        }
-
-        buildBuildings() {
-          for (const def of BUILDING_LIST) {
-            const rect = this.getBuildingRect(def);
-            const base = this.add.graphics();
-
-            base.fillStyle(0x000000, 0.35);
-            base.fillRect(rect.x + 5, rect.y + 6, rect.w, rect.h);
-            base.fillStyle(def.color, 1);
-            base.fillRect(rect.x, rect.y, rect.w, rect.h);
-            base.lineStyle(2, def.border, 0.95);
-            base.strokeRect(rect.x, rect.y, rect.w, rect.h);
-
-            const windows = this.drawBuildingDecor(base, def, rect);
-
-            const label = this.add.text(rect.x + rect.w / 2, rect.y + rect.h + 8, `${def.icon} ${def.name}`, {
-              fontFamily: "monospace",
-              fontSize: "11px",
-              color: "#f7fbff",
-              align: "center"
-            });
-            label.setOrigin(0.5, 0);
-            label.setAlpha(0.9);
-
-            const glow = this.add.graphics();
-            glow.fillStyle(def.border, 0.18);
-            glow.fillRoundedRect(rect.x - 6, rect.y - 6, rect.w + 12, rect.h + 12, 8);
-            glow.lineStyle(2, def.border, 0.9);
-            glow.strokeRoundedRect(rect.x - 3, rect.y - 3, rect.w + 6, rect.h + 6, 8);
-            glow.setAlpha(0);
-
-            const warning = this.add.graphics();
-            warning.fillStyle(COLORS.danger, 0.18);
-            warning.fillRoundedRect(rect.x - 7, rect.y - 7, rect.w + 14, rect.h + 14, 9);
-            warning.lineStyle(2, COLORS.danger, 0.95);
-            warning.strokeRoundedRect(rect.x - 4, rect.y - 4, rect.w + 8, rect.h + 8, 8);
-            warning.setAlpha(0);
-
-            this.buildings[def.id] = {
-              def,
-              rect,
-              base,
-              label,
-              glow,
-              warning,
-              windows,
-              glowTween: null
-            };
-
-            for (const windowRect of windows) {
-              this.scheduleWindowBlink(windowRect);
-            }
-          }
-        }
-
-        drawBuildingDecor(graphics, def, rect) {
-          const windows = [];
-          const step = Math.max(14, Math.floor((rect.w - 16) / Math.max(1, def.windows)));
-
-          for (let i = 0; i < def.windows; i += 1) {
-            const wx = rect.x + 8 + i * step;
-            const wy = rect.y + Math.max(8, Math.floor(rect.h * 0.35));
-            const windowRect = this.add.rectangle(wx, wy, 8, 8, 0xffe8a3, 0.2);
-            windowRect.setOrigin(0, 0);
-            windows.push(windowRect);
-          }
-
-          if (def.theme === "home") {
-            graphics.fillStyle(0x6b3a17, 1);
-            graphics.fillTriangle(rect.x + 2, rect.y, rect.x + rect.w / 2, rect.y - 14, rect.x + rect.w - 2, rect.y);
-            graphics.fillStyle(0x78350f, 1);
-            graphics.fillRect(rect.x + rect.w - 16, rect.y - 11, 7, 11);
-          }
-
-          if (def.theme === "cafe") {
-            graphics.fillStyle(0xb45309, 1);
-            graphics.fillRect(rect.x + 4, rect.y + 6, rect.w - 8, 8);
-            graphics.fillStyle(0xfbbf24, 1);
-            for (let i = 0; i < 5; i += 1) {
-              graphics.fillRect(rect.x + 6 + i * 14, rect.y + 8, 6, 6);
-            }
-          }
-
-          if (def.theme === "office") {
-            graphics.fillStyle(0x94a3b8, 0.4);
-            for (let x = rect.x + 10; x < rect.x + rect.w - 6; x += 12) {
-              graphics.fillRect(x, rect.y + 6, 3, rect.h - 12);
-            }
-            graphics.fillStyle(0x334155, 1);
-            graphics.fillRect(rect.x, rect.y - 6, rect.w, 6);
-          }
-
-          if (def.theme === "market") {
-            graphics.fillStyle(0x14532d, 1);
-            graphics.fillRect(rect.x + 4, rect.y + 4, rect.w - 8, 8);
-            graphics.fillStyle(0x22c55e, 1);
-            graphics.fillRect(rect.x + 10, rect.y + rect.h - 14, rect.w - 20, 8);
-          }
-
-          if (def.theme === "social") {
-            graphics.fillStyle(0xa78bfa, 0.35);
-            graphics.fillRect(rect.x + 6, rect.y + 5, rect.w - 12, 8);
-            graphics.fillStyle(0xe9d5ff, 1);
-            graphics.fillRect(rect.x + rect.w / 2 - 1, rect.y - 12, 2, 12);
-            graphics.fillCircle(rect.x + rect.w / 2, rect.y - 13, 3);
-          }
-
-          if (def.theme === "bank") {
-            graphics.fillStyle(0xfacc15, 0.22);
-            graphics.fillRect(rect.x + 6, rect.y + 8, rect.w - 12, 7);
-            graphics.fillStyle(0xeab308, 0.7);
-            for (let i = 0; i < 4; i += 1) {
-              graphics.fillRect(rect.x + 10 + i * 14, rect.y + 16, 6, rect.h - 22);
-            }
-            graphics.lineStyle(2, 0x451a03, 0.8);
-            graphics.strokeCircle(rect.x + rect.w / 2, rect.y + rect.h - 14, 7);
-          }
-
-          if (def.theme === "temple") {
-            graphics.fillStyle(0xd4af37, 0.85);
-            graphics.fillTriangle(rect.x + 6, rect.y, rect.x + rect.w / 2, rect.y - 18, rect.x + rect.w - 6, rect.y);
-            for (let i = 0; i < 4; i += 1) {
-              graphics.fillStyle(0xfef3c7, 0.92);
-              graphics.fillRect(rect.x + 12 + i * 14, rect.y + 10, 7, rect.h - 16);
-            }
-            graphics.fillStyle(0xb45309, 0.8);
-            graphics.fillRect(rect.x + 8, rect.y + rect.h - 8, rect.w - 16, 6);
-          }
-
-          if (def.theme === "shelter") {
-            graphics.fillStyle(0x064e3b, 1);
-            graphics.fillRect(rect.x + 4, rect.y + 4, rect.w - 8, 10);
-            graphics.fillStyle(0x34d399, 0.9);
-            graphics.fillRect(rect.x + rect.w / 2 - 4, rect.y + 10, 8, rect.h - 20);
-            graphics.fillRect(rect.x + 12, rect.y + rect.h / 2 - 3, rect.w - 24, 6);
-            const halo = this.add.graphics();
-            halo.lineStyle(2, 0x00ff88, 0.35);
-            halo.strokeEllipse(rect.x + rect.w / 2, rect.y + rect.h / 2, rect.w + 16, rect.h + 12);
-            this.tweens.add({ targets: halo, alpha: 0.2, duration: 900, yoyo: true, repeat: -1, ease: "Sine.InOut" });
-          }
-
-          return windows;
-        }
-
-        scheduleWindowBlink(windowRect) {
-          const delay = Phaser.Math.Between(900, 3500);
-          this.time.delayedCall(delay, () => {
-            this.tweens.add({
-              targets: windowRect,
-              alpha: { from: 0.2, to: 0.92 },
-              duration: Phaser.Math.Between(160, 260),
-              yoyo: true,
-              repeat: 0,
-              onComplete: () => {
-                windowRect.setAlpha(0.2);
-                this.scheduleWindowBlink(windowRect);
-              }
-            });
-          });
-        }
-
-        buildTempleAura() {
-          const temple = this.buildings.temple;
-          if (!temple) return;
-          const centerX = temple.rect.x + temple.rect.w / 2;
-          const centerY = temple.rect.y + temple.rect.h / 2;
-
-          this.templeEmitter = this.add.particles(centerX, centerY, "pixel-gold", {
-            lifespan: 1800,
-            quantity: 1,
-            frequency: 140,
-            scale: { start: 1.1, end: 0 },
-            speed: { min: 20, max: 36 },
-            alpha: { start: 0.7, end: 0 },
-            blendMode: "ADD",
-            emitZone: {
-              type: "edge",
-              source: new Phaser.Geom.Circle(0, 0, 62),
-              quantity: 48
-            }
-          });
-          this.templeEmitter.setDepth(3);
-
-          for (let i = 0; i < 10; i += 1) {
-            const orb = this.add.image(centerX, centerY, "pixel-gold");
-            orb.setScale(1.2 + Math.random() * 0.8);
-            orb.setAlpha(0.6 + Math.random() * 0.2);
-            this.templeOrbiters.push({
-              sprite: orb,
-              angle: Math.random() * Math.PI * 2,
-              radius: 44 + Math.random() * 20,
-              speed: 0.6 + Math.random() * 1.1
-            });
-          }
-        }
-
-        updateTempleOrbiters(delta) {
-          const temple = this.buildings.temple;
-          if (!temple) return;
-          const centerX = temple.rect.x + temple.rect.w / 2;
-          const centerY = temple.rect.y + temple.rect.h / 2;
-          const dt = delta / 1000;
-
-          for (const orb of this.templeOrbiters) {
-            orb.angle += dt * orb.speed;
-            orb.sprite.setPosition(
-              centerX + Math.cos(orb.angle) * orb.radius,
-              centerY + Math.sin(orb.angle) * (orb.radius * 0.72)
-            );
-          }
-        }
-
-        buildXiaobai() {
-          const start = this.getBuildingEntry(BUILDING_DEFS.home);
-          this.xiaobaiRoot = this.add.container(start.x, start.y);
-          this.xiaobaiRoot.setDepth(20);
-
-          const shadow = this.add.ellipse(0, 14, 20, 8, 0x000000, 0.34);
-          const bodyHolder = this.add.container(0, 0);
-          const body = this.add.graphics();
-          bodyHolder.add(body);
-
-          this.xiaobaiRoot.add([shadow, bodyHolder]);
-
-          this.xiaobaiBody = body;
-          this.xiaobaiBodyContainer = bodyHolder;
-          this.redrawXiaobai(COLORS.xiaobai);
-
-          this.breathTween = this.tweens.add({
-            targets: this.xiaobaiRoot,
-            scaleX: 1.02,
-            scaleY: 1.02,
-            duration: 1200,
-            yoyo: true,
-            repeat: -1,
-            ease: "Sine.InOut"
-          });
-        }
-
-        redrawXiaobai(mainColor) {
-          const g = this.xiaobaiBody;
-          g.clear();
-
-          const clawColor = shiftColor(mainColor, 28);
-          g.fillStyle(mainColor, 1);
-          g.fillEllipse(0, 1, 16, 20);
-
-          g.fillStyle(clawColor, 1);
-          g.fillRect(-14, -4, 10, 6);
-          g.fillRect(4, -4, 10, 6);
-
-          g.fillStyle(shiftColor(mainColor, -28), 1);
-          g.fillRect(-2, 8, 4, 5);
-
-          g.fillStyle(0xffffff, 1);
-          g.fillRect(-4, -8, 3, 3);
-          g.fillRect(1, -8, 3, 3);
-
-          g.fillStyle(0x0f172a, 1);
-          g.fillRect(-3, -7, 1, 1);
-          g.fillRect(2, -7, 1, 1);
-        }
-
-        buildDangerEmitter() {
-          this.dangerEmitter = this.add.particles(0, 0, "pixel-red", {
-            lifespan: 450,
-            speed: { min: 14, max: 42 },
-            scale: { start: 1.2, end: 0 },
-            quantity: 1,
-            frequency: 90,
-            blendMode: "ADD",
-            alpha: { start: 0.8, end: 0 },
-            emitZone: {
-              type: "edge",
-              source: new Phaser.Geom.Circle(0, 0, 22),
-              quantity: 20
-            }
-          });
-          this.dangerEmitter.startFollow(this.xiaobaiRoot);
-          this.dangerEmitter.stop();
-        }
-
-        setupCamera() {
-          const camera = this.cameras.main;
-          camera.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-          camera.startFollow(this.xiaobaiRoot, true, 0.08, 0.08);
-          camera.setZoom(1);
-        }
-
-        setFacingByTarget(targetX) {
-          this.facing = targetX < this.xiaobaiRoot.x ? -1 : 1;
-          this.xiaobaiBodyContainer.setScale(this.facing, 1);
-        }
-
-        moveXiaobaiTo(sceneId) {
-          const def = BUILDING_DEFS[sceneId] || BUILDING_DEFS.home;
-          const target = this.getBuildingEntry(def);
-          this.setFacingByTarget(target.x);
-
-          if (this.moveTween) this.moveTween.stop();
-          this.startWalkMotion();
-
-          this.moveTween = this.tweens.add({
-            targets: this.xiaobaiRoot,
-            x: target.x,
-            y: target.y,
-            duration: 2000,
-            ease: "Power2",
-            onComplete: () => {
-              this.stopWalkMotion();
-              this.playLandingBounce();
-            }
-          });
-        }
-
-        startWalkMotion() {
-          if (this.walkTween) this.walkTween.stop();
-          this.walkTween = this.tweens.add({
-            targets: this.xiaobaiBodyContainer,
-            y: -2,
-            duration: 110,
-            yoyo: true,
-            repeat: -1,
-            ease: "Sine.InOut"
-          });
-        }
-
-        stopWalkMotion() {
-          if (!this.walkTween) return;
-          this.walkTween.stop();
-          this.walkTween = null;
-          this.xiaobaiBodyContainer.y = 0;
-        }
-
-        playLandingBounce() {
-          this.tweens.add({
-            targets: this.xiaobaiRoot,
-            scaleX: { from: 0.9, to: 1.1 },
-            scaleY: { from: 0.9, to: 1.1 },
-            duration: 75,
-            yoyo: true,
-            repeat: 1,
-            onComplete: () => {
-              this.xiaobaiRoot.setScale(1);
-            }
-          });
-        }
-
-        applyMood(mood) {
-          if (this.stressTween) {
-            this.stressTween.stop();
-            this.stressTween = null;
-            this.xiaobaiBodyContainer.x = 0;
-          }
-          if (this.moodFlashTween) {
-            this.moodFlashTween.stop();
-            this.moodFlashTween = null;
-            this.xiaobaiBody.alpha = 1;
-          }
-
-          if (this.breathTween) this.breathTween.timeScale = 1;
-
-          if (DANGER_MOODS.has(mood)) {
-            this.redrawXiaobai(COLORS.xiaobaiDanger);
-            this.dangerEmitter.start();
-            this.isDangerMood = true;
-
-            this.moodFlashTween = this.tweens.add({
-              targets: this.xiaobaiBody,
-              alpha: 0.45,
-              duration: 120,
-              yoyo: true,
-              repeat: -1
-            });
-          } else if (ALERT_MOODS.has(mood)) {
-            this.redrawXiaobai(COLORS.xiaobaiAlert);
-            this.dangerEmitter.stop();
-            this.isDangerMood = false;
-
-            this.stressTween = this.tweens.add({
-              targets: this.xiaobaiBodyContainer,
-              x: 1.3,
-              duration: 70,
-              yoyo: true,
-              repeat: -1
-            });
-
-            if (this.breathTween) this.breathTween.timeScale = 2.1;
-          } else {
-            this.redrawXiaobai(COLORS.xiaobai);
-            this.dangerEmitter.stop();
-            this.isDangerMood = false;
-            if (this.breathTween) this.breathTween.timeScale = 1;
-          }
-        }
-
-        setActiveBuilding(sceneId) {
-          if (this.currentBuildingId === sceneId) return;
-
-          if (this.currentBuildingId && this.buildings[this.currentBuildingId]) {
-            const previous = this.buildings[this.currentBuildingId];
-            if (previous.glowTween) {
-              previous.glowTween.stop();
-              previous.glowTween = null;
-            }
-            previous.glow.setAlpha(0);
-          }
-
-          this.currentBuildingId = sceneId;
-          const current = this.buildings[sceneId];
-          if (!current) return;
-
-          current.glow.setAlpha(0.32);
-          current.glowTween = this.tweens.add({
-            targets: current.glow,
-            alpha: { from: 0.25, to: 0.7 },
-            duration: 550,
-            yoyo: true,
-            repeat: -1,
-            ease: "Sine.InOut"
-          });
-        }
-
-        updateThreatWarning(threatText) {
-          if (this.warningTween) {
-            this.warningTween.stop();
-            this.warningTween = null;
-          }
-
-          Object.values(this.buildings).forEach((item) => item.warning.setAlpha(0));
-
-          if (!threatText || !this.currentBuildingId) return;
-
-          const building = this.buildings[this.currentBuildingId];
-          if (!building) return;
-
-          building.warning.setAlpha(0.2);
-          this.warningTween = this.tweens.add({
-            targets: building.warning,
-            alpha: { from: 0.15, to: 0.88 },
-            duration: 240,
-            yoyo: true,
-            repeat: -1,
-            ease: "Sine.InOut"
-          });
-        }
-
-        showThreatNpc(threatText) {
-          if (!threatText) {
-            this.hideThreatNpc();
-            return;
-          }
-
-          if (this.threatNpc) return;
-
-          const npc = this.add.container(this.xiaobaiRoot.x + 36, this.xiaobaiRoot.y);
-          npc.setDepth(25);
-
-          const aura = this.add.circle(0, 0, 13, 0x3b0a5c, 0.35);
-          const core = this.add.circle(0, 0, 9, COLORS.threat, 0.95);
-          const icon = this.add.text(0, -1, "?", {
-            fontFamily: "monospace",
-            fontSize: "12px",
-            color: "#f8f5ff"
-          }).setOrigin(0.5, 0.5);
-
-          npc.add([aura, core, icon]);
-          this.threatNpc = npc;
-          this.threatNpcOrbit = { angle: 0, radius: 36 };
-
-          this.npcOrbitTween = this.tweens.add({
-            targets: this.threatNpcOrbit,
-            angle: 360,
-            duration: 3600,
-            repeat: -1,
-            ease: "Linear"
-          });
-        }
-
-        hideThreatNpc() {
-          if (!this.threatNpc) return;
-
-          if (this.npcOrbitTween) {
-            this.npcOrbitTween.stop();
-            this.npcOrbitTween = null;
-          }
-
-          const npc = this.threatNpc;
-          this.threatNpc = null;
-
-          this.tweens.add({
-            targets: npc,
-            scaleX: 0,
-            scaleY: 0,
-            alpha: 0,
-            duration: 300,
-            ease: "Quad.Out",
-            onComplete: () => npc.destroy()
-          });
-        }
-
-        updateThreatNpcPosition() {
-          if (!this.threatNpc) return;
-
-          const angle = Phaser.Math.DegToRad(this.threatNpcOrbit.angle);
-          const x = this.xiaobaiRoot.x + Math.cos(angle) * this.threatNpcOrbit.radius;
-          const y = this.xiaobaiRoot.y + Math.sin(angle) * this.threatNpcOrbit.radius * 0.65;
-          this.threatNpc.setPosition(x, y);
-        }
-
-        showSpeechBubble(message) {
-          if (!message) return;
-
-          if (this.speechBubble) {
-            this.speechBubble.destroy();
-            this.speechBubble = null;
-          }
-
-          const content = message.slice(0, 20);
-          const bubble = this.add.container(this.xiaobaiRoot.x, this.xiaobaiRoot.y - 48);
-          bubble.setDepth(40);
-
-          const width = Math.max(80, content.length * 11 + 18);
-          const bg = this.add.graphics();
-          bg.fillStyle(0xffffff, 0.97);
-          bg.fillRoundedRect(-width / 2, -18, width, 28, 8);
-          bg.fillTriangle(-7, 10, 7, 10, 0, 18);
-          bg.lineStyle(1, 0x0f172a, 0.75);
-          bg.strokeRoundedRect(-width / 2, -18, width, 28, 8);
-
-          const text = this.add.text(0, -4, content, {
-            fontFamily: "monospace",
-            fontSize: "11px",
-            color: "#0f172a"
-          }).setOrigin(0.5, 0.5);
-
-          bubble.add([bg, text]);
-          this.speechBubble = bubble;
-
-          this.tweens.add({
-            targets: bubble,
-            alpha: 0,
-            duration: 320,
-            delay: 3000,
-            onComplete: () => {
-              if (this.speechBubble === bubble) this.speechBubble = null;
-              bubble.destroy();
-            }
-          });
-        }
-
-        updateSpeechBubblePosition() {
-          if (!this.speechBubble) return;
-          this.speechBubble.setPosition(this.xiaobaiRoot.x, this.xiaobaiRoot.y - 48);
-        }
-
-        applyWorldState(state, options = {}) {
-          const sceneId = getSceneIdByLocation(state.location);
-          this.setActiveBuilding(sceneId);
-          this.updateThreatWarning(state.threat);
-          this.applyMood(state.mood);
-
-          if (!options.skipMovement) {
-            this.moveXiaobaiTo(sceneId);
-          } else {
-            const entry = this.getBuildingEntry(BUILDING_DEFS[sceneId] || BUILDING_DEFS.home);
-            this.xiaobaiRoot.setPosition(entry.x, entry.y);
-          }
-
-          if (state.threat) {
-            this.showThreatNpc(state.threat);
-          } else {
-            this.hideThreatNpc();
-          }
-
-          if (options.eventText) {
-            this.showSpeechBubble(options.eventText);
-          }
-        }
+          );
+        }, 280);
       }
 
-      const game = new Phaser.Game({
+      function initStateAndUI() {
+        setMode("DEMO");
+        applyState(DEFAULT_STATE, {
+          eventText: DEFAULT_STATE.last_event,
+          forceEvent: true,
+          forceNavigate: true
+        });
+        bus.emit("ui:update");
+      }
+
+      function exposeTextHooks() {
+        window.render_game_to_text = () => {
+          const sceneId = resolveSceneId(app.state.location);
+          const activePlayer = app.layer === "indoor" && indoorRef ? indoorRef.getPlayerState() : overworldRef ? overworldRef.getPlayerState() : { x: 0, y: 0 };
+          return JSON.stringify({
+            coordinate_system: "origin top-left, +x right, +y down, pixels after SCALE=2",
+            mode: app.mode,
+            layer: app.layer,
+            scene_id: sceneId,
+            location: app.state.location,
+            mood: app.state.mood,
+            threat: app.state.threat,
+            resolved_threats: app.state.resolved_threats,
+            player: activePlayer
+          });
+        };
+
+        window.advanceTime = (ms) => {
+          if (!gameRef || typeof gameRef.step !== "function") return;
+          const steps = Math.max(1, Math.round(ms / (1000 / 60)));
+          for (let i = 0; i < steps; i += 1) {
+            gameRef.step(0, 1000 / 60);
+          }
+        };
+      }
+
+      gameRef = new Phaser.Game({
         type: Phaser.AUTO,
         parent: "game-container",
-        width: 960,
-        height: 640,
+        width: 1280,
+        height: 896,
         backgroundColor: "#050d1a",
         pixelArt: true,
         antialias: false,
-        scene: [WorldScene],
+        scene: [BootScene, OverworldScene, IndoorScene, UIScene],
         scale: {
           mode: Phaser.Scale.RESIZE,
           autoCenter: Phaser.Scale.CENTER_BOTH
@@ -1741,16 +1556,16 @@
         }
       });
 
-      setMode("DEMO");
-      applyState(DEFAULT_STATE, { eventText: DEFAULT_STATE.last_event, forceEvent: true, skipMovement: true });
+      exposeTextHooks();
+      initStateAndUI();
       startDemoLoop();
 
       pollWorldState();
       window.setInterval(pollWorldState, 2000);
 
       window.addEventListener("beforeunload", () => {
-        if (demoTimer) window.clearInterval(demoTimer);
-        game.destroy(true);
+        if (app.demoTimer) window.clearInterval(app.demoTimer);
+        if (gameRef) gameRef.destroy(true);
       });
     })();
   </script>
