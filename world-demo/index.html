@@ -709,6 +709,9 @@
           this.stressTween = null;
           this.templeTorches = [];
           this.currentAnim = "idle-down";
+          this.atmoEmitter = null;
+          this.atmoOverlay = null;
+          this.foregroundSprites = [];
         }
 
         create() {
@@ -717,6 +720,8 @@
           this.buildBuildingsLabel();
           this.buildPlayer();
           this.buildTempleFire();
+          this.buildAtmosphere();
+          this.buildForegroundOcclusion();
 
           this.cameras.main.setBackgroundColor("#050d1a");
           this.cameras.main.setBounds(0, 0, OW_W * TILE * SCALE, OW_H * TILE * SCALE);
@@ -789,6 +794,9 @@
             paintRoadMask(from.tx, from.ty, from.tx, to.ty, 1);
             paintRoadMask(from.tx, to.ty, to.tx, to.ty, 1);
           }
+          paintRoadMask(2, 20, 36, 20, 3);
+          paintRoadMask(20, 3, 20, 24, 2);
+          paintRoadMask(7, 16, 33, 16, 2);
 
           for (let y = 0; y < OW_H; y += 1) {
             for (let x = 0; x < OW_W; x += 1) {
@@ -921,6 +929,14 @@
           [[10, 10], [20, 10], [30, 10], [20, 18], [31, 18]].forEach(([x, y], i) => {
             put(decor, x, y, [57, 58, 59][i % 3]);
           });
+          for (let x = 3; x < OW_W - 3; x += 5) {
+            const y = 22 + (x % 2);
+            put(decor, x, y, [93, 94, 95][x % 3]);
+            put(decor, x + 1, y - 1, [105, 106, 107][x % 3]);
+          }
+          for (let x = 2; x < OW_W - 2; x += 4) {
+            put(decor, x, 24, [30, 31, 32][x % 3]);
+          }
 
           const map = this.make.tilemap({
             width: OW_W,
@@ -965,6 +981,12 @@
             const cy = (b.ty + b.th + 0.3) * TILE * SCALE;
             shadow.fillEllipse(cx, cy, b.tw * TILE * 1.2, 16);
           }
+
+          this.atmoOverlay = this.add.graphics().setDepth(12);
+          this.atmoOverlay.fillStyle(0x0c1524, 0.18);
+          this.atmoOverlay.fillRect(0, 0, OW_W * TILE * SCALE, 72);
+          this.atmoOverlay.fillStyle(0x070d16, 0.26);
+          this.atmoOverlay.fillRect(0, OW_H * TILE * SCALE - 84, OW_W * TILE * SCALE, 84);
         }
 
         buildBuildingsLabel() {
@@ -1020,6 +1042,38 @@
               repeat: -1
             });
           }
+        }
+
+        buildAtmosphere() {
+          const particles = this.add.particles(0, 0, "tileset-outdoor-sprites", {
+            frame: [2, 93, 94],
+            x: { min: 16, max: OW_W * TILE * SCALE - 16 },
+            y: { min: 18, max: OW_H * TILE * SCALE - 22 },
+            lifespan: { min: 2200, max: 4200 },
+            speedY: { min: -8, max: 4 },
+            speedX: { min: -6, max: 6 },
+            quantity: 1,
+            frequency: 140,
+            scale: { start: 0.52, end: 0 },
+            alpha: { start: 0.65, end: 0 },
+            blendMode: "ADD"
+          });
+          particles.setDepth(11);
+          this.atmoEmitter = particles;
+        }
+
+        buildForegroundOcclusion() {
+          const putTree = (tx, ty, frame, scale) => {
+            const p = tileToWorld(tx, ty);
+            const sprite = this.add.sprite(p.x, p.y, "tileset-outdoor-sprites", frame).setScale(scale).setDepth(34);
+            sprite.setAlpha(0.95);
+            this.foregroundSprites.push(sprite);
+          };
+
+          putTree(2.4, 25.5, 3, 3.2);
+          putTree(6.6, 25.6, 9, 3.1);
+          putTree(33.4, 25.6, 4, 3.1);
+          putTree(37.6, 25.5, 10, 3.2);
         }
 
         applyMood(mood) {
