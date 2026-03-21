@@ -28,3 +28,8 @@ Original prompt: 请读取、理解并执行以下任务文档：/Users/ronnie/l
   - [x] Overworld 重建为高密度图层（地形噪声 + 建筑预制 + 围栏 + 阴影 + 树木边界）
   - [x] 室内场景加入 Kenney sample 背景叠加和房间氛围色
   - [x] 小白角色帧切换到 tiny-dungeon 可用角色帧，避免错误贴图
+- [x] 修复室内大面积黑屏/露底 bug：
+  - [x] Indoor 相机改为按窗口 cover 缩放（resize 自动重算）
+  - [x] 进入室内时隐藏 Overworld，退出时恢复可见，避免场景底层泄露
+- [x] 修复室内错误贴图（角色头部误作家具）：替换为有效家具/设备 tile 索引
+- [x] 去除 sample 底图底部水印区：新增 `sample_clean.png`
