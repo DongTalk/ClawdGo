@@ -5,15 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>龙虾安全世界 v3 · RPG 完整世界</title>
   <style>
+    @font-face {
+      font-family: "ArkPixel";
+      src: url("./assets/fonts/ark-pixel-12px-proportional-zh_cn.ttf.woff2") format("woff2");
+      font-display: swap;
+    }
+
     :root {
-      --bg: #070d17;
-      --panel: rgba(8, 14, 26, 0.94);
-      --panel-border: #1f3a5a;
-      --text: #e9f6ff;
-      --muted: #97afc4;
+      --bg: #090f1b;
+      --panel: rgba(10, 20, 34, 0.95);
+      --panel-border: #21466f;
+      --text: #eaf8ff;
+      --muted: #9fbad0;
       --danger: #ff5f5f;
       --safe: #00d47a;
       --xp: #00c7ff;
+      --gold: #ffde7e;
+      --card: rgba(11, 24, 42, 0.86);
     }
 
     * {
@@ -26,11 +34,13 @@
       width: 100%;
       height: 100%;
       background:
-        radial-gradient(circle at 16% 12%, rgba(72, 187, 255, 0.14), transparent 36%),
-        radial-gradient(circle at 86% 88%, rgba(242, 155, 44, 0.12), transparent 32%),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 40px),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 40px),
+        radial-gradient(circle at 16% 12%, rgba(72, 187, 255, 0.12), transparent 36%),
+        radial-gradient(circle at 86% 88%, rgba(242, 155, 44, 0.1), transparent 32%),
         var(--bg);
       color: var(--text);
-      font-family: "Courier New", monospace;
+      font-family: "ArkPixel", "Courier New", monospace;
       overflow: hidden;
     }
 
@@ -68,12 +78,13 @@
       top: 10px;
       left: 10px;
       z-index: 6;
-      padding: 6px 10px;
-      border: 1px solid rgba(0, 199, 255, 0.25);
-      border-radius: 8px;
-      background: rgba(6, 18, 34, 0.72);
+      padding: 7px 11px;
+      border: 2px solid rgba(255, 223, 126, 0.45);
+      border-radius: 10px;
+      background: rgba(10, 24, 40, 0.84);
       font-size: 12px;
-      color: #b9e8ff;
+      color: #fff2c8;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
       pointer-events: none;
     }
 
@@ -84,15 +95,16 @@
       gap: 12px;
       padding: 14px;
       min-height: 0;
-      border-left: 1px solid rgba(255, 255, 255, 0.02);
+      border-left: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: inset 12px 0 24px rgba(0, 0, 0, 0.35);
     }
 
     .status-card,
     .events-card {
-      border: 1px solid var(--panel-border);
-      border-radius: 10px;
-      background: rgba(13, 25, 43, 0.85);
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 8px 20px rgba(0, 0, 0, 0.28);
+      border: 2px solid var(--panel-border);
+      border-radius: 12px;
+      background: var(--card);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 12px 24px rgba(0, 0, 0, 0.3);
     }
 
     .status-card {
@@ -112,12 +124,12 @@
     }
 
     .mode-pill {
-      border: 1px solid rgba(0, 199, 255, 0.4);
+      border: 1px solid rgba(0, 199, 255, 0.5);
       border-radius: 999px;
       padding: 2px 8px;
       color: #6fe1ff;
       font-size: 10px;
-      background: rgba(0, 199, 255, 0.1);
+      background: rgba(0, 199, 255, 0.12);
     }
 
     .mode-pill.live {
@@ -127,17 +139,17 @@
     }
 
     .floor-indicator {
-      border: 1px solid rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 222, 126, 0.35);
       border-radius: 8px;
       padding: 6px 8px;
-      color: #cfe8ff;
+      color: #ffebad;
       font-size: 12px;
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(255, 193, 87, 0.08);
     }
 
     .location-row {
       font-size: 15px;
-      color: #f4fbff;
+      color: #f8fdff;
       line-height: 1.3;
       word-break: break-word;
     }
@@ -169,7 +181,7 @@
     }
 
     .bars {
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 8px;
       padding: 8px;
       display: grid;
@@ -177,7 +189,7 @@
       column-gap: 6px;
       row-gap: 8px;
       align-items: center;
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(255, 255, 255, 0.03);
     }
 
     .bar-label,
@@ -217,10 +229,11 @@
     }
 
     .events-head {
-      padding: 10px 12px;
+      padding: 10px 12px 9px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      color: #d7ebff;
+      color: #ffebad;
       font-size: 12px;
+      letter-spacing: 0.5px;
     }
 
     #eventsList {
@@ -241,7 +254,7 @@
       font-size: 11px;
       color: #d0e3f3;
       line-height: 1.35;
-      border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.11);
       padding-bottom: 5px;
     }
 
@@ -707,11 +720,13 @@
           this.playerClaws = null;
           this.moveTween = null;
           this.stressTween = null;
+          this.walkBobTween = null;
           this.templeTorches = [];
           this.currentAnim = "idle-down";
           this.atmoEmitter = null;
           this.atmoOverlay = null;
           this.foregroundSprites = [];
+          this.onResize = () => this.refreshOverworldCamera();
         }
 
         create() {
@@ -727,8 +742,22 @@
           this.cameras.main.setBounds(0, 0, OW_W * TILE * SCALE, OW_H * TILE * SCALE);
           this.cameras.main.startFollow(this.playerShell, true, 0.09, 0.09);
           this.cameras.main.setRoundPixels(true);
+          this.refreshOverworldCamera();
+          this.scale.on("resize", this.onResize, this);
+          this.events.on("shutdown", () => {
+            this.scale.off("resize", this.onResize, this);
+          });
 
           this.applyMood(app.state.mood);
+        }
+
+        refreshOverworldCamera() {
+          const worldW = OW_W * TILE * SCALE;
+          const worldH = OW_H * TILE * SCALE;
+          const vw = this.scale.width;
+          const vh = this.scale.height;
+          const zoom = Math.max(vw / worldW, vh / worldH, 1);
+          this.cameras.main.setZoom(zoom);
         }
 
         buildMap() {
@@ -1100,7 +1129,26 @@
           }
         }
 
+        startWalkBob() {
+          if (this.walkBobTween) return;
+          this.walkBobTween = this.tweens.add({
+            targets: this.player,
+            y: this.player.y - 2,
+            duration: 120,
+            yoyo: true,
+            repeat: -1
+          });
+        }
+
+        stopWalkBob() {
+          if (!this.walkBobTween) return;
+          this.walkBobTween.stop();
+          this.walkBobTween = null;
+          this.player.y = 0;
+        }
+
         playWalkAnim(dx, dy) {
+          this.startWalkBob();
           if (Math.abs(dx) > Math.abs(dy)) {
             this.player.play("walk-side", true);
             this.player.setFlipX(dx < 0);
@@ -1117,6 +1165,7 @@
         }
 
         setIdleFromMove() {
+          this.stopWalkBob();
           if (this.currentAnim === "walk-up") {
             this.player.play("idle-up", true);
           } else {
@@ -1194,6 +1243,7 @@
           this.npcOrbitTween = null;
           this.npcOrbit = { angle: 0, radius: 56 };
           this.stressTween = null;
+          this.walkBobTween = null;
           this.onResize = () => this.refreshIndoorCamera();
         }
 
@@ -1222,7 +1272,14 @@
             duration: 900,
             ease: "Sine.Out",
             onStart: () => this.playWalk("down"),
-            onComplete: () => this.player.play("idle-down", true)
+            onComplete: () => {
+              if (this.walkBobTween) {
+                this.walkBobTween.stop();
+                this.walkBobTween = null;
+                this.player.y = 0;
+              }
+              this.player.play("idle-down", true);
+            }
           });
         }
 
@@ -1473,6 +1530,15 @@
         }
 
         playWalk(direction) {
+          if (!this.walkBobTween) {
+            this.walkBobTween = this.tweens.add({
+              targets: this.player,
+              y: this.player.y - 2,
+              duration: 130,
+              yoyo: true,
+              repeat: -1
+            });
+          }
           if (direction === "up") {
             this.player.play("walk-up", true);
             this.player.setFlipX(false);
@@ -1553,6 +1619,11 @@
         exitToOverworld(done) {
           this.cameras.main.fadeOut(300, 0, 0, 0);
           this.cameras.main.once("camerafadeoutcomplete", () => {
+            if (this.walkBobTween) {
+              this.walkBobTween.stop();
+              this.walkBobTween = null;
+              this.player.y = 0;
+            }
             this.scene.setVisible(true, "OverworldScene");
             this.shutdownScene();
             this.scene.stop();
