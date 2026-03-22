@@ -219,6 +219,22 @@ ClawdGo/
 
 ---
 
+## Milestones
+
+### v1.1.0 (2026-03-18)
+
+- Added **B/C/D/E/F/G** modes, moving from a single-mode flow to a multi-mode training loop.
+- Introduced the **3-layer/12-dimension framework** and **4-factor scoring**.
+- Added **rank progression** and Arena title ladder for stage-based growth feedback.
+- Standardized scenario library under `references/scenarios/` for community PR contribution.
+
+### v1.0.0 (2026-03-13)
+
+- Initial release with guided training flow and core cybersecurity scenarios.
+- Shipped the browser card-battle prototype, forming the first dual-track experience (text skill + visual demo).
+
+---
+
 ## Contribute
 
 - ⭐ Star the project to support open source
