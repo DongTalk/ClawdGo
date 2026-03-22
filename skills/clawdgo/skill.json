@@ -1,6 +1,6 @@
 {
   "name": "clawdgo",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "ClawdGo 龙虾网安训练营：AI Agent 安全意识训练，三层十二维度，八种训练模式，红蓝对抗竞技场，安全口诀系统，跨会话记忆持久化。",
   "category": "security-training",
   "license": "MIT-0",

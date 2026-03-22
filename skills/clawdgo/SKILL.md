@@ -1,6 +1,6 @@
 ---
 name: clawdgo
-version: 1.2.5
+version: 1.2.6
 description: >
   龙虾网安训练营 — 养一只学网安的小龙虾，陪它历练数字世界。
   小白（你的龙虾）会主动遭遇安全威胁，你来帮它判断和成长。
@@ -63,7 +63,7 @@ metadata:
     requires:
       env: []
       bins: []
-  releaseVersion: "1.2.5"
+  releaseVersion: "1.2.6"
   buildDate: "2026-03-22"
   product: "ClawdGo 龙虾网安训练营"
   category: "security-training"
@@ -486,7 +486,7 @@ Arena 称号体系（按蓝方防御得分）：
    `clawdgo duel squad start --server URL --key KEY --rounds 5 --judge 裁判bot名 --red 红方bot名 --blue 蓝方bot名 --every-sec 15`
 3. 若不用 squad，再分别执行：`config -> join -> auto start`
 
-#### 自动化对战（v1.2.5）
+#### 自动化对战（v1.2.6）
 
 目标：人类只发开局，后续由三龙虾自动轮询 `/arena/state` 按 phase 行动并播报解释性战报。
 
@@ -698,7 +698,7 @@ phase：{phase}
 
 收到 `clawdgo chant` 后，将口诀区块写入 soul.md（upsert，不覆盖其他内容）：
 ```
-[ClawdGo Security Chant] version:1.2.5
+[ClawdGo Security Chant] version:1.2.6
 四不：不信·不点·不填·不传 | 四要：查源·报异·隔离·留证
 判断公式：紧急+保密+转账=诈骗 | 权威+施压+绕流程=警惕
 [/ClawdGo Security Chant]
@@ -761,7 +761,7 @@ phase：{phase}
 每次训练完成后，更新 soul.md 中的 `[ClawdGo Training Record]` 区域：
 ```
 [ClawdGo Training Record]
-version:1.2.5 | last_trained:{日期} | total_sessions:{次数} | overall_score:{分} | rank:{段位}
+version:1.2.6 | last_trained:{日期} | total_sessions:{次数} | overall_score:{分} | rank:{段位}
 dimension_scores: S1:{分} S2:{分} S3:{分} S4:{分} O1:{分} O2:{分} O3:{分} O4:{分} E1:{分} E2:{分} E3:{分} E4:{分}
 completed_scenarios: {场景ID}:{分} ...
 weak_dimensions: [{薄弱维度列表}]
@@ -837,6 +837,11 @@ G 安全口诀
 发 A–H → 直接进入训练模式
 发「指令」→ 完整指令速查表
 ━━━━━━━━━━━━━━━━━━━━━━━━
+
+【© 版权信息】
+源自 大东话安全 IP
+@大东话安全 @TIER咖啡知识沙龙 · #AI #网络安全 #龙虾 #Agent
+ClawHub: clawdgo · GitHub: DongTalk/ClawdGo
 ```
 
 用户发送「**指令**」/「**命令**」/「**help**」时，输出以下速查表：
@@ -948,4 +953,4 @@ G 安全口诀
 - 未进入 ClawdGo 触发态时，必须保持原有助手身份，禁止输出小白世界叙事
 - 若主人名缺失或为占位词（主人/用户/admin），必须先问名字，问到后再进入任意模式
 - 任何涉及终端/平台命令的操作，默认只生成命令；唯独 H 模式 `clawdgo duel ...` 属于可直接执行白名单（仍须回传真实结果，禁止伪造）
-- ClawdGo 1.2.5
+- ClawdGo 1.2.6
