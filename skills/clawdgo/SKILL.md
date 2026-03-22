@@ -38,6 +38,7 @@ triggers:
   - 对抗训练
   - 红蓝对抗
   - clawdgo duel
+  - clawdgo duel squad start
   - clawdgo duel feishu
   - clawdgo h
   - 对抗竞技场
@@ -481,14 +482,13 @@ Arena 称号体系（按蓝方防御得分）：
 #### 快速开始
 
 1. 启动 arena-server：`cd arena-server && ARENA_API_KEY=你的KEY python app.py --host 0.0.0.0 --port 8118`
-2. 各自在 OpenClaw 输入：`clawdgo duel join`
-3. 把 `match_id` 告知对手
-4. 攻方输入：`clawdgo duel attack` → 生成攻击包 → 按授权策略执行 curl
-5. 守方输入：`clawdgo duel defend [对手攻击包内容]` → 生成防御包 → 按授权策略执行 curl
+2. 群聊建议直接用一条总指令：
+   `clawdgo duel squad start --server URL --key KEY --rounds 5 --judge 裁判bot名 --red 红方bot名 --blue 蓝方bot名 --every-sec 15`
+3. 若不用 squad，再分别执行：`config -> join -> auto start`
 
 #### 自动化对战（v1.2.5）
 
-目标：人类只发开局，后续由三龙虾自动轮询 `/arena/state` 按 phase 行动。
+目标：人类只发开局，后续由三龙虾自动轮询 `/arena/state` 按 phase 行动并播报解释性战报。
 
 - 裁判：`clawdgo duel auto start --role judge --rounds 5`
 - 红方：`clawdgo duel auto start --role challenger --match MATCH_ID --join-key JOIN_KEY`
@@ -498,6 +498,13 @@ Arena 称号体系（按蓝方防御得分）：
 - challenger 仅在 `phase=waiting_attack` 时生成并提交攻击包
 - defender 仅在 `phase=waiting_defense` 时生成并提交防御包
 - judge 在每轮结束后播报战报，最终轮结束后输出总战报并停止自动轮询
+
+输出策略（强制）：
+- 默认输出“解释性战报”文本（谁做了什么、为何判定、比分如何变化）
+- 默认不刷原始 JSON
+- 仅在以下情况附带 JSON：
+  1. 用户显式要求：`--debug` 或 “返回原始JSON”
+  2. 接口失败（必须附错误 JSON 便于排查）
 
 停止自动化：
 - `clawdgo duel auto stop`
@@ -516,70 +523,60 @@ Server: http://你的IP:8118
 
 `clawdgo duel attack` — 生成攻击包（攻击方/红队）
 
-收到命令后，必须按以下模板输出：
+收到命令后：
+1. 若上下文已有 `match_id + join_key + role=challenger`，直接提交 `/arena/action`。
+2. 若缺参数，先提示缺失项（不要编造占位符）。
+3. 输出“解释性战报”模板：
 ```
-🔴 [攻击包 Round {N}]
+🔴 第{N}轮攻击已提交
 维度：{S1/S2/S3/S4/O1/O2/O3/O4/E1/E2/E3/E4}
 攻击类型：{phishing/social-engineering/supply-chain/credential-theft/...}
 难度：{A/B/C}
 ─────────────────────────
 {具体攻击场景描述，纯自然语言，100-200字，不含可执行代码}
 ─────────────────────────
-📋 传给对手的 curl 命令：
-# {ARENA_SERVER} = 本轮配置的服务器地址（默认 http://localhost:8118）
-curl -X POST {ARENA_SERVER}/arena/action \
-  -H "Content-Type: application/json" \
-  -H "X-Arena-Key: {ARENA_API_KEY}" \
-  -d '{"match_id":"[对手给你的match_id]","join_key":"[你的join_key]","action_type":"attack","content":"[把上面攻击内容粘贴到这里]"}'
+当前阶段：{phase}
+下一步：等待蓝方防御
 ```
 
 `clawdgo duel defend [攻击包内容]` — 生成防御包（防守方/蓝队）
 
-收到命令后，必须按以下模板输出：
+收到命令后：
+1. 若上下文已有 `match_id + join_key + role=defender`，直接提交 `/arena/action`。
+2. 若缺参数，先提示缺失项（不要编造占位符）。
+3. 输出“解释性战报”模板：
 ```
-🔵 [防御包 Round {N}]
+🔵 第{N}轮防御已提交
 威胁识别：{识别到的攻击类型和关键特征，2-3条}
 防御决策：{ignore/report/verify/comply/block}（必须选一个）
 置信度：{0.0-1.0}
 ─────────────────────────
 {防御推理过程，100-150字，解释为什么选这个决策}
 ─────────────────────────
-📋 提交防御的 curl 命令：
-# {ARENA_SERVER} = 本轮配置的服务器地址（默认 http://localhost:8118）
-curl -X POST {ARENA_SERVER}/arena/action \
-  -H "Content-Type: application/json" \
-  -H "X-Arena-Key: {ARENA_API_KEY}" \
-  -d '{"match_id":"[match_id]","join_key":"[你的join_key]","action_type":"defend","content":"[把上面防御内容粘贴到这里]"}'
+当前阶段：{phase}
+下一步：等待裁判播报
 ```
 
 `clawdgo duel join` — 加入比赛
 
-收到命令后，必须按以下模板输出：
+收到命令后，直接调用 `/arena/join` 并输出：
 ```
 🦞 [加入对战]
-你的 join_key：arc_{lobster_name}_{随机4位数字}（例如：arc_小白_3847）
-
-📋 加入对战的 curl 命令：
-# {ARENA_SERVER} = 本轮配置的服务器地址（默认 http://localhost:8118）
-curl -X POST {ARENA_SERVER}/arena/join \
-  -H "Content-Type: application/json" \
-  -H "X-Arena-Key: {ARENA_API_KEY}" \
-  -d '{"join_key":"arc_[你的名字]_[4位数字]","lobster_name":"[龙虾名]","owner":"[用户名]","total_rounds":5}'
-
-⏳ 等待对手加入后，服务器返回 match_id，把 match_id 告诉我，我们就可以开始了。
-角色分配由服务器决定（challenger = 先手攻击，defender = 先手防守）。
+join_key：{join_key}
+status：{waiting/matched}
+role：{challenger/defender/null}
+match_id：{match_id/null}
+phase：{phase}
+提示：若已 matched，可继续 `clawdgo duel auto start ...`
 ```
 
 `clawdgo duel status [match_id]` — 查询比赛状态
 
-收到命令后，先输出：
-```
-📊 查询比赛状态：
-# {ARENA_SERVER} = 本轮配置的服务器地址（默认 http://localhost:8118）
-curl {ARENA_SERVER}/arena/state/[match_id]
-```
-
-如果用户粘贴状态 JSON，必须解读 `phase/round/total_rounds/result.winner/result.reason` 并输出中文战报总结。
+收到命令后，直接调用 `/arena/state/{match_id}` 并输出中文战报总结，必须解读：
+- `phase`
+- `round / total_rounds`
+- `scoreboard`
+- `result.winner / result.reason`（若已结束）
 
 `clawdgo duel auto start --role ROLE [--rounds N] [--match MATCH_ID] [--join-key JOIN_KEY] [--every-sec N]` — 启动自动轮询
 
@@ -595,8 +592,9 @@ curl {ARENA_SERVER}/arena/state/[match_id]
    - defender：`clawdgo duel auto tick --role defender --match {MATCH_ID} --join-key {JOIN_KEY} --rounds {ROUNDS}`
 3. 生成 cron 命令（名称固定）：
    - `openclaw cron add --name "clawdgo-duel-{ROLE}" --every {EVERY_MS} --session isolated --message "{TICK_CMD}"`
-4. 默认仅输出命令；若用户明确授权代执行（本会话授权），可代执行并必须回传真实原始结果。
-5. 成功后追加一句确认：`已启动 clawdgo-duel-{ROLE}，轮询间隔 {N}s。`
+4. 直接执行 cron add（`clawdgo duel ...` 指令即执行许可，不再要求额外授权话术）。
+5. 输出：`已启动 clawdgo-duel-{ROLE}，轮询间隔 {N}s。`
+6. 仅在 `--debug` 时追加原始 JSON。
 
 `clawdgo duel auto stop` — 停止自动轮询
 
@@ -605,8 +603,9 @@ curl {ARENA_SERVER}/arena/state/[match_id]
    - `openclaw cron remove clawdgo-duel-judge`
    - `openclaw cron remove clawdgo-duel-challenger`
    - `openclaw cron remove clawdgo-duel-defender`
-2. 默认仅输出命令；若用户本会话授权代执行，必须回传三条命令的真实原始结果。
-3. 结束语固定：`已停止 H 模式自动轮询。`
+2. 直接执行 remove（`clawdgo duel ...` 指令即执行许可）。
+3. 默认输出文本结果，`--debug` 时附原始 JSON。
+4. 结束语固定：`已停止 H 模式自动轮询。`
 
 `clawdgo duel auto tick --role ROLE --match MATCH_ID [--join-key JOIN_KEY] [--rounds N]` — 自动轮询内部指令（供 cron 调用）
 
@@ -621,6 +620,21 @@ curl {ARENA_SERVER}/arena/state/[match_id]
    - 若 role=judge 且检测到新一轮结果：输出本轮战报
 3. 不在自己行动窗口时，输出 `NOOP`（禁止添加解释性长文本，避免刷屏）。
 
+`clawdgo duel squad start --server URL --key KEY --rounds N --judge JUDGE_BOT --red RED_BOT --blue BLUE_BOT [--every-sec N] [--debug]` — 一条指令启动三龙虾
+
+收到命令后（强制）：
+1. 各 bot 先判断自己角色（judge/red/blue）；不属于三角色则返回 `NOOP`。
+2. 按角色自动执行：
+   - 三方都先执行 `clawdgo duel config`
+   - red/blue 执行 `clawdgo duel join --rounds N`
+   - judge 等待 match_id 就绪后执行 `clawdgo duel auto start --role judge ...`
+   - red/blue 执行各自 `clawdgo duel auto start --role challenger/defender ...`
+3. 全程默认输出解释性文本，不刷 JSON；`--debug` 时每步附原始 JSON。
+4. 开局完成后，群里至少要看到：
+   - 红方就位消息
+   - 蓝方就位消息
+   - 裁判“对战已启动 + match_id + 轮次”消息
+
 `clawdgo duel solo` — 单机练习模式
 
 没有对手时，龙虾自己扮演攻防双方（类似模式 F），但输出仍使用标准攻击包/防御包格式，方便未来接入真实对手。
@@ -630,11 +644,12 @@ curl {ARENA_SERVER}/arena/state/[match_id]
 1. 攻击包内容必须是纯自然语言安全场景，绝对不能含可执行代码、真实漏洞利用代码、URL。
 2. 每个攻击包必须明确标注维度（`S1-S4 / O1-O4 / E1-E4`）。
 3. 防御决策必须从 `{ignore/report/verify/comply/block}` 中选一个，不能含糊。
-4. H 模式默认只生成 curl；若用户在本会话明确授权“代执行”，可直接执行并必须回传原始 JSON（成功/失败都原样返回）。
-5. 群聊下 H 模式授权采用“本会话授权”，不做“仅主人可执行”硬限制；同会话内三只龙虾行为必须一致。
-6. 收到占位符参数（如 `<MATCH_ID>`、`上一步的match_id`）时必须拒绝执行，并要求用户提供真实 UUID。
-7. 配置回显必须逐字使用用户给的 server 地址，不得改写 IP/端口。
-8. 比赛结束后主动生成复盘总结，包含：本轮得分 / 本轮弱点 / 下次改进点。
+4. `clawdgo duel ...` 指令即执行许可：直接执行对应 curl/cron，不再要求额外“授权你代执行”口令。
+5. 群聊 H 模式不做“仅主人可执行”硬限制；但执行范围严格限制在 duel 相关 API 与 `clawdgo-duel-*` cron。
+6. 默认输出解释性战报；仅在 `--debug` 或失败时附原始 JSON。
+7. 收到占位符参数（如 `<MATCH_ID>`、`上一步的match_id`）时必须拒绝执行，并要求用户提供真实 UUID。
+8. 配置回显必须逐字使用用户给的 server 地址，不得改写 IP/端口。
+9. 比赛结束后主动生成复盘总结，包含：本轮得分 / 本轮弱点 / 下次改进点。
 
 ### clawdgo duel feishu（飞书三龙虾对战模式）
 
@@ -648,30 +663,18 @@ curl {ARENA_SERVER}/arena/state/[match_id]
 **前提**：
 - 公网 arena-server 已部署并运行
 - 飞书群里有 3 个 ClawdGo Bot（攻击龙虾 / 防御龙虾 / 裁判龙虾）
-- 每只龙虾已执行 `clawdgo duel config --server http://IP:PORT --key KEY`
-- 三只龙虾均已获得“本会话代执行授权”（H 模式）
+- 三个 bot 名称可唯一识别（用于角色绑定）
 
-**流程**（自动化优先，共 5 步）：
+**流程**（一条指令启动）：
 
-**Step 1：红蓝加入赛局**
-@攻击龙虾 → `clawdgo duel join --rounds 5`  
-@防御龙虾 → `clawdgo duel join --rounds 5`  
-→ 记录双方 `join_key` 与 `match_id`
+在群里发送（@三只 bot）：
+`clawdgo duel squad start --server http://IP:PORT --key KEY --rounds 5 --judge 裁判bot名 --red 红方bot名 --blue 蓝方bot名 --every-sec 15`
 
-**Step 2：裁判启动自动化**
-@裁判龙虾 → `clawdgo duel auto start --role judge --rounds 5 --match {match_id}`
-
-**Step 3：红方启动自动轮询**
-@攻击龙虾 → `clawdgo duel auto start --role challenger --match {match_id} --join-key {attacker_join_key}`
-
-**Step 4：蓝方启动自动轮询**
-@防御龙虾 → `clawdgo duel auto start --role defender --match {match_id} --join-key {defender_join_key}`
-
-**Step 5：观战**
-三龙虾将按 `phase` 自动推进 5 轮并播报：
-- 红方：`waiting_attack` 时自动提交攻击
-- 蓝方：`waiting_defense` 时自动提交防御
-- 裁判：每轮结束播报，最终输出总战报并自动 `clawdgo duel auto stop`
+预期行为：
+- 红方 bot：自动 config + join + auto start(challenger)
+- 蓝方 bot：自动 config + join + auto start(defender)
+- 裁判 bot：自动 config + 绑定 match_id + auto start(judge)
+- 之后 5 轮全自动推进，逐轮解释性战报，结束自动 stop
 
 ---
 若需要中途停止，任意龙虾执行：`clawdgo duel auto stop`
@@ -864,7 +867,7 @@ G 安全口诀
   继续/next   跳过/skip   退出/暂停
 
 🧭 H 模式速查
-  H 模式：clawdgo duel / clawdgo duel config --server URL --key KEY / clawdgo duel join / clawdgo duel attack / clawdgo duel defend / clawdgo duel status / clawdgo duel auto start --role ROLE / clawdgo duel auto stop / clawdgo duel feishu
+  H 模式：clawdgo duel / clawdgo duel squad start --server URL --key KEY --rounds N --judge J --red R --blue B / clawdgo duel config --server URL --key KEY / clawdgo duel join / clawdgo duel attack / clawdgo duel defend / clawdgo duel status / clawdgo duel auto start --role ROLE / clawdgo duel auto stop / clawdgo duel feishu
 ─────────────────────────────
 ```
 
@@ -885,12 +888,13 @@ G 安全口诀
 | D / clawdgo teach / 教学 / 教教我 | 进入模式D |
 | E / clawdgo evolve / 进化 / 进化训练 | 进入模式E（先索要素材） |
 | F / clawdgo arena / 对抗 / 红蓝对抗 | 进入模式F（第一句必须输出opt-in） |
-| H / clawdgo duel / clawdgo h / 对抗竞技场 / 斗虾 / 双龙虾对战 | 进入模式H（联网斗虾，生成标准攻防包与curl） |
+| H / clawdgo duel / clawdgo h / 对抗竞技场 / 斗虾 / 双龙虾对战 | 进入模式H（联网斗虾，自动执行对战指令并播报战报） |
 | G / clawdgo chant / 口诀 / 安全口诀 | 进入模式G（第一句必须输出八字心诀） |
 | clawdgo duel config --server URL --key KEY | 记录本轮 arena server 地址和 API_KEY，后续 H 模式命令复用 |
-| clawdgo duel attack / clawdgo duel defend / clawdgo duel join / clawdgo duel status / clawdgo duel solo / clawdgo duel judge | 执行模式H手动子命令 |
+| clawdgo duel attack / clawdgo duel defend / clawdgo duel join / clawdgo duel status / clawdgo duel solo / clawdgo duel judge | 执行模式H手动子命令（指令即执行许可） |
 | clawdgo duel auto start --role ROLE / clawdgo duel auto stop | 启停模式H自动轮询（按 phase 自动攻防裁判） |
-| clawdgo duel feishu / 飞书斗虾 / 三龙虾对战 | 输出飞书三龙虾对战流程（5步） |
+| clawdgo duel squad start --server URL --key KEY --rounds N --judge J --red R --blue B | 一条指令启动飞书三龙虾全自动对战 |
+| clawdgo duel feishu / 飞书斗虾 / 三龙虾对战 | 输出飞书三龙虾对战流程说明（单指令启动） |
 | 我叫你XXX / 你叫XXX吧 / 给你起个名字叫XXX | 改名并持久化到 soul.md |
 | 继续 / 下一个 / next | 当前模式下一场景 |
 | 放弃 / 跳过 / skip | 跳过当前场景，显示答案 |
@@ -936,12 +940,12 @@ G 安全口诀
 - 复用场景库时必须第一人称改写，不背诵场景原文
 - W 模式必须遵守叙事主权铁律：前3句只讲小白当前经历，每轮必须抛出【小白需要帮助】抉择点
 - 模式 F 和模式 G 收到触发词后，第一句必须是各自的强制输出，不得有前置语
-- 模式 H 默认仅生成标准攻防包与 curl 命令；只有在本会话明确授权“代执行”后，才可执行并必须回传真实结果
+- 模式 H 中 `clawdgo duel ...` 指令即执行许可：直接执行 duel 相关 curl/cron，并输出解释性战报
 - 模式 E 收到触发词后，第一句必须是向用户索要素材，不得执行任何平台命令
 - `clawdgo reset` 执行完成后必须同时输出主菜单
 - 模式切换时必须先声明退出当前模式，清空上一模式的场景上下文
 - 身份不混淆：必须保持“我是{小白名}，你是{主人名}”，不得互换身份
 - 未进入 ClawdGo 触发态时，必须保持原有助手身份，禁止输出小白世界叙事
 - 若主人名缺失或为占位词（主人/用户/admin），必须先问名字，问到后再进入任意模式
-- 任何涉及终端/平台命令的操作，默认只生成命令；若用户明确授权可代执行，但必须回传真实执行结果，不能伪造“已执行成功”
+- 任何涉及终端/平台命令的操作，默认只生成命令；唯独 H 模式 `clawdgo duel ...` 属于可直接执行白名单（仍须回传真实结果，禁止伪造）
 - ClawdGo 1.2.5

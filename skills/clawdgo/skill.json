@@ -36,7 +36,7 @@
         "description": "对抗竞技场：5 轮连续运行，期间无需用户确认。用户随时可发送「暂停」/「退出」中断。"
       }
     ],
-    "cronNote": "SKILL.md 包含 cron 配置示例。默认由用户手动执行；若用户明确授权，龙虾可代执行并回传真实执行结果。"
+    "cronNote": "SKILL.md 包含 cron 配置示例。H 模式 clawdgo duel 指令即执行许可，可直接执行 duel 相关 curl/cron 并回传真实结果。"
   },
   "capabilities": [
     "guided-training",
@@ -54,7 +54,8 @@
     "h-mode-duel",
     "arena-server-integration",
     "dual-lobster-combat",
-    "duel-auto-polling"
+    "duel-auto-polling",
+    "duel-squad-orchestration"
   ],
   "triggers": [
     "clawdgo",
@@ -84,6 +85,7 @@
     "对抗训练",
     "红蓝对抗",
     "clawdgo duel",
+    "clawdgo duel squad start",
     "clawdgo duel auto tick",
     "clawdgo duel auto start",
     "clawdgo duel auto stop",
