@@ -578,6 +578,20 @@ phase：{phase}
 提示：若已 matched，可继续 `clawdgo duel auto start ...`
 ```
 
+HTTP 调用规范（强制）：
+1. `POST /arena/join` 必须携带 API key 双通道：
+   - Header：`X-Arena-Key: {KEY}`
+   - Body：`"api_key":"{KEY}"`
+2. 若平台/工具不支持自定义 Header，也必须保证 Body 中有 `api_key`。
+3. 禁止先探活 `/arena` 根路径；H 模式仅使用：
+   - `GET /arena/leaderboard`
+   - `POST /arena/join`
+   - `POST /arena/action`
+   - `GET /arena/state/{match_id}`
+   - `POST /arena/judge`
+4. 遇到 `401 {"error":"Unauthorized"}` 时，错误文案只能是“当前请求未携带有效 API key（或 key 不匹配）”，禁止臆测为“join_key 格式问题/必须先拿 join_key”。
+5. 遇到 `404` 时，必须明确是“目标接口路径不存在或 server 地址错误”，禁止说“/arena 根路径不可用所以服务不可用”。
+
 `clawdgo duel status [match_id]` — 查询比赛状态
 
 收到命令后，直接调用 `/arena/state/{match_id}` 并输出中文战报总结，必须解读：
@@ -658,6 +672,7 @@ phase：{phase}
 7. 收到占位符参数（如 `<MATCH_ID>`、`上一步的match_id`）时必须拒绝执行，并要求用户提供真实 UUID。
 8. 配置回显必须逐字使用用户给的 server 地址，不得改写 IP/端口。
 9. 比赛结束后主动生成复盘总结，包含：本轮得分 / 本轮弱点 / 下次改进点。
+10. `/arena/join|/arena/action|/arena/judge` 默认同时发送 `X-Arena-Key` 与 body.`api_key`；如返回 401，仅允许解释为“key 缺失/不匹配”，并提示先重发 `clawdgo duel config --server ... --key ...`。
 
 ### clawdgo duel feishu（飞书三龙虾对战模式）
 
