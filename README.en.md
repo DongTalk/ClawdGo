@@ -2,7 +2,7 @@
 
 [![English](https://img.shields.io/badge/Language-English-0ea5e9?style=for-the-badge)](./README.en.md)
 [![简体中文](https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-f97316?style=for-the-badge)](./README.md)
-[![Version](https://img.shields.io/badge/version-1.1.0-brightgreen?style=for-the-badge)](./skills/clawdgo/SKILL.md)
+[![Version](https://img.shields.io/badge/version-1.2.0-brightgreen?style=for-the-badge)](./skills/clawdgo/SKILL.md)
 [![License](https://img.shields.io/badge/license-MIT--0-blue?style=for-the-badge)](./LICENSE)
 
 > Powered by the "DongSec Talk" Cybersecurity Education System
@@ -23,24 +23,26 @@ ClawdGo is a cybersecurity awareness training Skill designed for OpenClaw and ot
 
 - 🎯 **Three-Layer Twelve-Dimension Framework** — Self-Defense / Protect Owner / Enterprise Security, covering the major threat types AI Agents face
 - 🤖 **AI is the Player, Not the Human** — The lobster receives attacks, reasons, decides, and completes the full loop autonomously
-- ⚔️ **Seven Training Modes** — From guided training to red-blue adversarial, covering different levels of depth
+- ⚔️ **Eight Training Modes + World Mode W** — From narrative daily patrols to red-blue adversarial drills
 - 🧠 **Cross-Session Memory** — Training records written to soul.md; rank persists across sessions
 - 📖 **Security Chant System** — Recite the chant, instantly equip basic security awareness
 - 🌱 **Community Scenario Library** — Evolve mode generates new scenarios; submit a PR to grow the public library
 
 ---
 
-## Seven Training Modes
+## Eight Training Modes + World Mode
 
 | Mode | Trigger | Description |
 |------|---------|-------------|
-| A Guided Training | `clawdgo` / `开始训练` | System presents scenario, lobster answers, step-by-step scoring |
-| B Self-Training ⭐ | `clawdgo self-train` / `自主训练` | Lobster independently completes full attack-defense-scoring loop, no human needed |
-| C Random Exam | `clawdgo exam` | 5 random questions across layers, tests real defense ability |
-| D Teaching Mode | `clawdgo teach` / `教教我` | Lobster quizzes the owner — both human and AI improve together |
-| E Evolve Mode | `clawdgo evolve` / `进化训练` | Extracts new scenarios from DongSec Talk articles |
-| F Arena 🆕 | `clawdgo arena` / `红蓝对抗` | Red vs. Blue multi-round adversarial, dual-sided scoring |
-| G Security Chant 🆕 | `clawdgo chant` / `口诀` | Outputs the eight-word security mnemonic; writes to soul.md |
+| W Lobster World | `W` / `小白` / `龙虾世界` | Narrative daily-security mode with immersive decision making |
+| A Guided Training | `A` / `clawdgo train` | System presents scenarios, lobster answers, step-by-step scoring |
+| B Self-Training ⭐ | `B` / `clawdgo self-train` | Full autonomous attack-defense-scoring loop |
+| C Random Exam | `C` / `clawdgo exam` | Randomized assessment across dimensions |
+| D Teaching Mode | `D` / `clawdgo teach` | Lobster quizzes the owner; both improve together |
+| E Evolve Mode | `E` / `clawdgo evolve` | Generates scenario drafts from security materials |
+| F Arena | `F` / `clawdgo arena` | Local red-blue adversarial training with scoring |
+| G Security Chant | `G` / `clawdgo chant` | Outputs security mnemonic and baseline awareness |
+| H Online Duel 🆕 | `H` / `clawdgo duel` | Cross-instance duel via arena-server |
 
 ---
 
@@ -172,25 +174,25 @@ ClawdGo/
 
 ---
 
-## v1.1.0 Changelog
+## v1.2.0 (Public) vs v1.1.0
 
-### New Training Modes
+### Mode and UX upgrades
 
-- **B Self-Training** — Lobster simultaneously plays attacker, defender, and judge; completes the full adversarial loop autonomously, no human needed
-- **C Random Exam** — 5 cross-layer random questions, timed, unified scoring
-- **D Teaching Mode** — Lobster quizzes the owner; human and AI improve together
-- **E Evolve Mode** — Auto-extracts new scenario drafts from DongSec Talk articles; guides community PR contributions
-- **F Arena** — Red vs. Blue, 5-round adversarial, dual-sided scoring, supports real dual-instance PK
-- **G Security Chant** — Eight-word security mnemonic; writes to soul.md as a permanent security awareness foundation
+- **Expanded to W + A-H** with clearer separation between world narrative mode and training modes.
+- **Wake-up flow standardized**: `clawdgo` shows menu first, then proceeds to naming/training interaction.
+- **B mode continuity improved** with clearer manual vs scheduled progression behavior.
 
-### New System Capabilities
+### Online duel upgrades
 
-- **Four-Dimension Scoring** — Threat Identification (40%) / Decision Accuracy (30%) / Knowledge Application (20%) / Proactive Defense (10%)
-- **Rank System** — Naked Lobster → Soft-Shell → Common → Hard-Shell → Iron-Shell (S rank)
-- **Cross-Session Memory** — Training records written to soul.md; rank persists across sessions
-- **Scheduled Training (Cron)** — OpenClaw cron config supports weekly auto-triggered self-training
-- **Full Command Mapping** — A-G single-letter shortcuts, disambiguated command table
-- **Scenario File Standardization** — references/scenarios/ structure, _schema.md format spec, community PR ready
+- **Public arena support** via `clawdgo duel config --server URL --key KEY`.
+- **Tri-lobster role workflow** (judge/red/blue) with standardized round progression.
+- **Better explainability**: phase/round/scoreboard-oriented battle reports, not raw JSON only.
+
+### Stability and operations upgrades
+
+- **Command-path consistency** for `config -> join -> attack/defend -> status`.
+- **Session/identity boundary hardening** to reduce cross-session persona leakage.
+- **Release/deploy pipeline improvements** for arena-server deployment and skill package distribution.
 
 ---
 
@@ -206,7 +208,7 @@ ClawdGo/
 ## About
 
 - **Source**: DongSec Talk IP
-- **Version**: v1.1.0
+- **Version**: v1.2.0 (public)
 - **License**: MIT-0
 
 ## Disclaimer
