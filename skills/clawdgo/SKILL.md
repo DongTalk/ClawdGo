@@ -291,7 +291,7 @@ ClawHub: clawdgo · GitHub: DongTalk/ClawdGo
 | D / clawdgo teach / 教学 / 教教我 | 进入模式D |
 | E / clawdgo evolve / 进化 / 进化训练 | 进入模式E（先索要素材） |
 | F / clawdgo arena / 对抗 / 红蓝对抗 | 进入模式F（第一句必须opt-in） |
-| H / clawdgo duel / clawdgo h / 斗虾 / 双龙虾对战 | 进入模式H（自动执行并播报） |
+| H / clawdgo duel / clawdgo h / 对抗竞技场 / 斗虾 / 双龙虾对战 | 进入模式H（自动执行并播报） |
 | G / clawdgo chant / 口诀 / 安全口诀 | 进入模式G（第一句必须口诀） |
 | clawdgo duel config / attack / defend / join / judge / status / solo | 执行H手动子命令（指令即执行许可） |
 | clawdgo duel auto start / auto stop | 启停H自动轮询 |
