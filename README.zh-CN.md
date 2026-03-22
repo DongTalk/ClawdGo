@@ -2,7 +2,7 @@
 
 [![English](https://img.shields.io/badge/Language-English-0ea5e9?style=for-the-badge)](./README.md)
 [![简体中文](https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-f97316?style=for-the-badge)](./README.zh-CN.md)
-[![Version](https://img.shields.io/badge/version-1.2.0-brightgreen?style=for-the-badge)](./skills/clawdgo/SKILL.md)
+[![Version](https://img.shields.io/badge/version-1.2.1-brightgreen?style=for-the-badge)](./skills/clawdgo/SKILL.md)
 
 养龙虾的朋友看过来！
 
@@ -13,7 +13,7 @@
 - 面向人类体验的浏览器端卡牌对抗原型
 - 面向 Claw 风格 Agent 的 `skills/clawdgo` 文本训练 skill
 
-## v1.2.0（对外）相比 v1.1.0
+## v1.2.1（对外）相比 v1.1.0
 
 - 模式体系升级为 **W + A-H**，覆盖世界叙事、基础训练与联网对战。
 - 新增 **H 联网斗虾**：支持配置公网 arena-server（`clawdgo duel config --server URL --key KEY`）。

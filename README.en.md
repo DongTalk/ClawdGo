@@ -2,7 +2,7 @@
 
 [![English](https://img.shields.io/badge/Language-English-0ea5e9?style=for-the-badge)](./README.en.md)
 [![简体中文](https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-f97316?style=for-the-badge)](./README.md)
-[![Version](https://img.shields.io/badge/version-1.2.0-brightgreen?style=for-the-badge)](./skills/clawdgo/SKILL.md)
+[![Version](https://img.shields.io/badge/version-1.2.1-brightgreen?style=for-the-badge)](./skills/clawdgo/SKILL.md)
 [![License](https://img.shields.io/badge/license-MIT--0-blue?style=for-the-badge)](./LICENSE)
 
 > Powered by the "DongSec Talk" Cybersecurity Education System
@@ -24,7 +24,7 @@ ClawdGo is a cybersecurity awareness training Skill designed for OpenClaw and ot
 - 🎯 **Three-Layer Twelve-Dimension Framework** — Self-Defense / Protect Owner / Enterprise Security, covering the major threat types AI Agents face
 - 🤖 **AI is the Player, Not the Human** — The lobster receives attacks, reasons, decides, and completes the full loop autonomously
 - ⚔️ **Eight Training Modes + World Mode W** — From narrative daily patrols to red-blue adversarial drills
-- 🧠 **Cross-Session Memory** — Training records written to soul.md; rank persists across sessions
+- 🧠 **Session Runtime Memory** — No soul.md dependency; training progress and battle context stay within the current session
 - 📖 **Security Chant System** — Recite the chant, instantly equip basic security awareness
 - 🌱 **Community Scenario Library** — Evolve mode generates new scenarios; submit a PR to grow the public library
 
@@ -192,7 +192,7 @@ ClawdGo/
 
 ---
 
-## What's New in v1.2.0
+## What's New in v1.2.1 (including v1.2.0 capabilities)
 
 ### Lobster Security World Map
 
@@ -231,7 +231,7 @@ ClawdGo/
 ## About
 
 - **Source**: DongSec Talk IP
-- **Version**: v1.2.0
+- **Version**: v1.2.1
 - **License**: MIT-0
 
 ## Disclaimer

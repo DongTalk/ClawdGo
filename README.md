@@ -2,7 +2,7 @@
 
 [![English](https://img.shields.io/badge/Language-English-0ea5e9?style=for-the-badge)](./README.en.md)
 [![简体中文](https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-f97316?style=for-the-badge)](./README.md)
-[![Version](https://img.shields.io/badge/version-1.2.0-brightgreen?style=for-the-badge)](./skills/clawdgo/SKILL.md)
+[![Version](https://img.shields.io/badge/version-1.2.1-brightgreen?style=for-the-badge)](./skills/clawdgo/SKILL.md)
 [![License](https://img.shields.io/badge/license-MIT--0-blue?style=for-the-badge)](./LICENSE)
 
 > 源自「大东话安全」网络安全科普体系
@@ -24,7 +24,7 @@ ClawdGo 是专为 OpenClaw 等 Claw 风格 AI Agent 设计的网络安全意识�
 - 🎯 **三层十二维度训练体系** — 守护自身 / 守护主人 / 守护组织，覆盖 AI Agent 面临的主要威胁类型
 - 🤖 **AI 是玩家，不是人** — 龙虾接受攻击、推理、决策，全程自主，无需人类干预
 - ⚔️ **八种训练模式 + 世界模式 W** — 从日常叙事到红蓝对抗，覆盖练习到实战联动
-- 🧠 **跨会话记忆持久化** — 训练档案写入 soul.md，段位永久保留
+- 🧠 **会话态训练记忆** — 不依赖 soul.md，当前会话内保留训练进度与战报上下文
 - 📖 **安全口诀系统** — 一键背诵，新龙虾即刻具备基础网安意识
 - 🌱 **社区共建场景库** — 进化模式生成新场景，提交 PR 丰富公开场景库
 
@@ -192,7 +192,7 @@ ClawdGo/
 
 ---
 
-## v1.2.0 更新内容
+## v1.2.1 更新内容（含 v1.2.0 能力）
 
 ### 龙虾安全世界可视化地图
 
@@ -231,7 +231,7 @@ ClawdGo/
 ## 关于
 
 - **来源**：大东话安全 IP
-- **版本**：v1.2.0
+- **版本**：v1.2.1
 - **许可**：MIT-0
 
 ## 免责声明
