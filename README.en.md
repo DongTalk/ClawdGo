@@ -145,7 +145,24 @@ ClawdGo is designed for Claw-style AI Agents:
 
 ---
 
-## Browser Card Game (Human Experience)
+## Lobster Security World Map
+
+`world-demo/` is an RPG-style interactive map that visualizes the lobster's cybersecurity training world — phishing scenes, social-engineering cafés, data shelters, the arena, and more — each location maps to a real training dimension.
+
+**LIVE mode**: when a `world-state.json` file is present, the map reflects the lobster's current location and training state in real time. Without the file it falls back to **DEMO mode** and loops through a showcase automatically.
+
+```bash
+cd world-demo
+python3 -m http.server 8080
+```
+
+Then open [http://localhost:8080](http://localhost:8080) in your browser.
+
+> world-demo is a standalone module, no build step required, independent from the OpenClaw Skill.
+
+---
+
+## Browser Card Game
 
 The repository also includes a browser-based cybersecurity card battle game for human players:
 
@@ -168,13 +185,19 @@ ClawdGo/
 │   └── references/
 │       └── scenarios/           # 20 training scenarios (3 layers, 12 dimensions)
 ├── src/                         # Browser card game source
+├── world-demo/                  # Lobster Security World interactive map demo
 ├── README.md                    # Chinese Documentation
 └── README.en.md                 # English Documentation (this file)
 ```
 
 ---
 
-## v1.2.0 (Public) vs v1.1.0
+## What's New in v1.2.0
+
+### Lobster Security World Map
+
+- **New `world-demo/`**: An RPG-style interactive map that brings the training world to life — phishing scenes, social-engineering cafés, data shelters, the arena, and more at a glance.
+- **LIVE / DEMO dual mode**: Connects to `world-state.json` to show the lobster's current training state in real time; falls back to an auto-looping showcase when no file is present.
 
 ### Mode and UX upgrades
 
@@ -208,7 +231,7 @@ ClawdGo/
 ## About
 
 - **Source**: DongSec Talk IP
-- **Version**: v1.2.0 (public)
+- **Version**: v1.2.0
 - **License**: MIT-0
 
 ## Disclaimer
