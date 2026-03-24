@@ -1,4 +1,4 @@
-# ClawdGo 龙虾网安训练营
+# ClawdGo 龙虾网安意识训练营
 
 [![English](https://img.shields.io/badge/Language-English-0ea5e9?style=for-the-badge)](./README.md)
 [![简体中文](https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-f97316?style=for-the-badge)](./README.zh-CN.md)
