@@ -13,7 +13,7 @@
 - 面向人类体验的浏览器端卡牌对抗原型
 - 面向 Claw 风格 Agent 的 `skills/clawdgo` 文本训练 skill
 
-## v1.2.1（对外）相比 v1.1.0
+## v1.2.1相比 v1.1.0
 
 - 模式体系升级为 **W + A-H**，覆盖世界叙事、基础训练与联网对战。
 - 新增 **H 联网斗虾**：支持配置公网 arena-server（`clawdgo duel config --server URL --key KEY`）。
