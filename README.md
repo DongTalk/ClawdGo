@@ -1,4 +1,4 @@
-# ClawdGo 🦞🔐 龙虾网安训练营
+# ClawdGo 🦞🔐 龙虾网安意识训练营
 
 [![English](https://img.shields.io/badge/Language-English-0ea5e9?style=for-the-badge)](./README.en.md)
 [![简体中文](https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-f97316?style=for-the-badge)](./README.md)
@@ -13,7 +13,7 @@
 
 **你的龙虾 AI，真的懂网络安全吗？**
 
-ClawdGo 是专为 OpenClaw 等 Claw 风格 AI Agent 设计的网络安全意识训练 Skill。让龙虾独闯真实钓鱼攻击、社工诈骗、供应链威胁现场，在真实对抗中建立网安判断能力。
+ClawdGo 是专为 OpenClaw 等 Claw 风格 AI Agent 设计的网络安全意识训练 Skill。让龙虾独闯真实钓鱼攻击、社工诈骗、供应链威胁现场，在真实对抗中建立网安意识。
 
 ---
 
