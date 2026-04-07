@@ -2,10 +2,10 @@
 
 [![English](https://img.shields.io/badge/Language-English-0ea5e9?style=for-the-badge)](./README.en.md)
 [![简体中文](https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-f97316?style=for-the-badge)](./README.md)
-[![Version](https://img.shields.io/badge/version-1.2.1-brightgreen?style=for-the-badge)](./skills/clawdgo/SKILL.md)
+[![Version](https://img.shields.io/badge/version-1.3.2-brightgreen?style=for-the-badge)](./skills/clawdgo/SKILL.md)
 [![License](https://img.shields.io/badge/license-MIT--0-blue?style=for-the-badge)](./LICENSE)
 
-> 源自「大东话安全」网络安全科普体系
+> 源自「大东话安全」网络安全科普体系，腾讯玄武实验室合作支持
 
 ---
 
@@ -192,7 +192,7 @@ ClawdGo/
 
 ---
 
-## v1.2.1 更新内容（含 v1.2.0 能力）
+## v1.3.2 版本能力总览
 
 ### 龙虾安全世界可视化地图
 
@@ -247,7 +247,8 @@ ClawdGo/
 ## 关于
 
 - **来源**：大东话安全 IP
-- **版本**：v1.2.1
+- **合作支持**：腾讯玄武实验室
+- **版本**：v1.3.2
 - **许可**：MIT-0
 
 ## 免责声明
